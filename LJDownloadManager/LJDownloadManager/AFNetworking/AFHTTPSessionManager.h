@@ -109,25 +109,34 @@ NS_ASSUME_NONNULL_BEGIN
  Requests created with `requestWithMethod:URLString:parameters:` & `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:` are constructed with a set of default headers using a parameter serialization specified by this property. By default, this is set to an instance of `AFHTTPRequestSerializer`, which serializes query string parameters for `GET`, `HEAD`, and `DELETE` requests, or otherwise URL-form-encodes HTTP message bodies.
  
     当通过requestWithMethod:URLString:parameters:和multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:来创建请求，使用此属性指定的参数序列化的一组默认标题。
-    默认情况下，这个参数是被一个AFHTTPRequestSerializer对象来设置的，
+    默认情况下，这个参数是被一个AFHTTPRequestSerializer对象来设置的，这个对象连续请求通过GET/HEAD和DELETE等，或者其他形式的HTTP消息体URL编码。
 
  @warning `requestSerializer` must not be `nil`.
+ 
+    警告：requestSerializer一定不能为空。
  */
 @property (nonatomic, strong) AFHTTPRequestSerializer <AFURLRequestSerialization> * requestSerializer;
 
 /**
  Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.
+ 
+    通过dataTaskWithRequest:success:failure:和使用GET/POST等方法，响应体在数据任务中通过服务端来创建。
+    便利方法会自动的验证和序列化响应体，默认情况下，这个属性设置为AFJSONResponseSerializer
 
  @warning `responseSerializer` must not be `nil`.
  */
 @property (nonatomic, strong) AFHTTPResponseSerializer <AFURLResponseSerialization> * responseSerializer;
 
 ///-------------------------------
-/// @name Managing Security Policy
+/// @name Managing Security Policy  安全管理策略
 ///-------------------------------
 
 /**
  The security policy used by created session to evaluate server trust for secure connections. `AFURLSessionManager` uses the `defaultPolicy` unless otherwise specified. A security policy configured with `AFSSLPinningModePublicKey` or `AFSSLPinningModeCertificate` can only be applied on a session manager initialized with a secure base URL (i.e. https). Applying a security policy with pinning enabled on an insecure session manager throws an `Invalid Security Policy` exception.
+ 
+    创建会话的安全策略，来评估服务器对安全连接的信任度。
+    AFURLSessionManager通常情况下采取的默认的策略，安全策略通过AFSSLPinningModePublicKey和AFSSLPinningModeCertificate来配置，只能应用在会话管理者初始化一个安全的基础URL（像https）。
+    在一个不安全的会话管理应用一个安全策略会抛出异常‘无效的安全策略’。👌
  */
 @property (nonatomic, strong) AFSecurityPolicy *securityPolicy;
 
@@ -137,6 +146,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  Creates and returns an `AFHTTPSessionManager` object.
+ 
+    创建返回一个AFHTTPSessionManager对象
  */
 + (instancetype)manager;
 
@@ -146,6 +157,10 @@ NS_ASSUME_NONNULL_BEGIN
  @param url The base URL for the HTTP client.
 
  @return The newly-initialized HTTP client
+ 
+    初始化AFHTTPSessionManager对象通过指定的根URL。
+    url指的是给HTTP客户端设置的根URL
+    返回一个新初始化的HTTP客户端
  */
 - (instancetype)initWithBaseURL:(nullable NSURL *)url;
 
@@ -158,6 +173,13 @@ NS_ASSUME_NONNULL_BEGIN
  @param configuration The configuration used to create the managed session.
 
  @return The newly-initialized HTTP client
+ 
+ 
+    初始化AFHTTPSessionManager对象通过指定的根URL。
+    这里是工厂方法
+    url指的是给HTTP客户端设置的根URL
+    configuration是创建一个回话管理者的配置
+    返回一个新初始化的HTTP客户端
  */
 - (instancetype)initWithBaseURL:(nullable NSURL *)url
            sessionConfiguration:(nullable NSURLSessionConfiguration *)configuration NS_DESIGNATED_INITIALIZER;
@@ -175,6 +197,13 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+ 
+    创建了一个NSURLSessionDataTask通过GET请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
  */
 - (nullable NSURLSessionDataTask *)GET:(NSString *)URLString
                    parameters:(nullable id)parameters
@@ -192,6 +221,17 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过GET请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    下载进度的block，当下载的进度更新。注意：这个block在当前会话所在的线程，而不是在主线程。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ 
  */
 - (nullable NSURLSessionDataTask *)GET:(NSString *)URLString
                             parameters:(nullable id)parameters
@@ -208,6 +248,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过HEAD请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)HEAD:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -223,6 +272,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过POST请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -239,6 +297,17 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ 
+ 
+    创建了一个NSURLSessionDataTask通过POST请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    下载进度的block，当下载的进度更新。注意：这个block在当前会话所在的线程，而不是在主线程。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                              parameters:(nullable id)parameters
@@ -256,6 +325,17 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过多部件的POST请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    一个block对象，只有一个参数，加入数据到HTTP体中，这个对象是遵循了AFMultipartFormData协议的 👌似乎是提交表单这个block快就是提交form表单用的，他会和【 parameters:(NSDictionary *)parameters】参数一起由AFN合并提交给后台服务器的
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
+ 
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                     parameters:(nullable id)parameters
@@ -274,6 +354,18 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
+ 
+ 
+    创建了一个NSURLSessionDataTask通过多部件的POST请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数
+    一个block对象，只有一个参数，加入数据到HTTP体中，这个对象是遵循了AFMultipartFormData协议的 👌似乎是提交表单这个block快就是提交form表单用的，他会和【 parameters:(NSDictionary *)parameters】参数一起由AFN合并提交给后台服务器的
+    下载进度的block，当下载的进度更新。注意：这个block在当前会话所在的线程，而不是在主线程。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:uploadProgress:downloadProgress:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)POST:(NSString *)URLString
                              parameters:(nullable id)parameters
@@ -291,6 +383,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过PUT请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)PUT:(NSString *)URLString
                    parameters:(nullable id)parameters
@@ -306,6 +407,15 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+ 
+    创建了一个NSURLSessionDataTask通过PATCH请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
  */
 - (nullable NSURLSessionDataTask *)PATCH:(NSString *)URLString
                      parameters:(nullable id)parameters
@@ -321,6 +431,16 @@ NS_ASSUME_NONNULL_BEGIN
  @param failure A block object to be executed when the task finishes unsuccessfully, or that finishes successfully, but encountered an error while parsing the response data. This block has no return value and takes a two arguments: the data task and the error describing the network or parsing error that occurred.
 
  @see -dataTaskWithRequest:completionHandler:
+    
+    创建了一个NSURLSessionDataTask通过DELETE请求。
+    URLStringURLString是用来创建请求的URL
+    参数是客户端请求需要的参数。
+    一个block对象，当任务成功完成时候执行。这个请求无返回值，有两个参数，一个是数据任务，一个是客户端响应者创建的响应对象
+    一个block对象，当任务不成功完成时候执行，或者成功完成，但是在解析响应数据的时候发生错误。这个请求无返回值，有两个参数，一个是数据任务，一个是描述发生的网络错误或解析错误
+ 
+ 
+    具体实现：-dataTaskWithRequest:completionHandler:
+ 
  */
 - (nullable NSURLSessionDataTask *)DELETE:(NSString *)URLString
                       parameters:(nullable id)parameters
