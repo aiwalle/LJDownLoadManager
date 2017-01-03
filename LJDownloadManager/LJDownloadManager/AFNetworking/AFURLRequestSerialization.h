@@ -247,12 +247,16 @@ forHTTPHeaderField:(NSString *)field;
 
  @param username The HTTP basic auth username
  @param password The HTTP basic auth password
+ 
+    设置http头的授权信息，通过base64位编码的用户名和密码来设置http客户端的授权值。这个值可以在任何头存在的地方重写
  */
 - (void)setAuthorizationHeaderFieldWithUsername:(NSString *)username
                                        password:(NSString *)password;
 
 /**
  Clears any existing value for the "Authorization" HTTP header.
+    
+    清除所有的http头授权信息。
  */
 - (void)clearAuthorizationHeader;
 
@@ -262,6 +266,8 @@ forHTTPHeaderField:(NSString *)field;
 
 /**
  HTTP methods for which serialized requests will encode parameters as a query string. `GET`, `HEAD`, and `DELETE` by default.
+ 
+    序列化请求的http方法通过传入字符串的方式来对请求的字符串进行编码作用。
  */
 @property (nonatomic, strong) NSSet <NSString *> *HTTPMethodsEncodingParametersInURI;
 
@@ -271,6 +277,8 @@ forHTTPHeaderField:(NSString *)field;
  @param style The serialization style.
 
  @see AFHTTPRequestQueryStringSerializationStyle
+ 
+    根据一个预定义的风格来设置请求字符串序列化的方法
  */
 - (void)setQueryStringSerializationWithStyle:(AFHTTPRequestQueryStringSerializationStyle)style;
 
@@ -278,6 +286,10 @@ forHTTPHeaderField:(NSString *)field;
  Set the a custom method of query string serialization according to the specified block.
 
  @param block A block that defines a process of encoding parameters into a query string. This block returns the query string and takes three arguments: the request, the parameters to encode, and the error that occurred when attempting to encode parameters for the given request.
+ 
+    设置一个自定义的请求字符串序列化的方法根据特定的block
+    
+    block,一个定义了编码参数到请求字符串的进程block。这个block返回了请求的字符串和三个参数：请求，对应的参数，当通过参数来解析对应的请求时发生的错误信息
  */
 - (void)setQueryStringSerializationWithBlock:(nullable NSString * (^)(NSURLRequest *request, id parameters, NSError * __autoreleasing *error))block;
 
@@ -296,6 +308,14 @@ forHTTPHeaderField:(NSString *)field;
  @param error The error that occurred while constructing the request.
 
  @return An `NSMutableURLRequest` object.
+ 
+    创建了一个可改变的NSMutableURLRequest对象通过指定的HTTP方法和URL字符串
+    如果HTTP方法是`GET`, `HEAD`, or `DELETE`，这个参数会被用来构造一个基于给定URL的url编码请求字符串。另一方面，这个参数会依据parameterEncoding属性来编码和设置请求体。
+    
+    http请求方式
+    创建url的Url字符串
+    请求参数
+    错误信息
  */
 - (NSMutableURLRequest *)requestWithMethod:(NSString *)method
                                  URLString:(NSString *)URLString
@@ -314,6 +334,12 @@ forHTTPHeaderField:(NSString *)field;
  @param error The error that occurred while constructing the request.
 
  @return An `NSMutableURLRequest` object
+ 
+    创建了一个可改变的NSMutableURLRequest对象通过指定的HTTP方法和URL字符串，构造一个“表单信息”的http请求体，使用特定的参数和多部件的表格数据block
+ 
+    多部件的表单请求会自动流式传输，通过磁盘和内存的数据来读取文件。这个NSMutableURLRequest对象的结果有一个HTTPBodyStream，，因此禁止设置HTTPBodyStream和HTTPBody在请求对象，否则会清空多部件表格流体
+ 
+    block,（这里只翻译block），有一个参数，在http请求提上加载数据，这个block的参数是一个遵循了AFMultipartFormData协议的对象
  */
 - (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method
                                               URLString:(NSString *)URLString
@@ -331,6 +357,12 @@ forHTTPHeaderField:(NSString *)field;
  @discussion There is a bug in `NSURLSessionTask` that causes requests to not send a `Content-Length` header when streaming contents from an HTTP body, which is notably problematic when interacting with the Amazon S3 webservice. As a workaround, this method takes a request constructed with `multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:error:`, or any other request with an `HTTPBodyStream`, writes the contents to the specified file and returns a copy of the original request with the `HTTPBodyStream` property set to `nil`. From here, the file can either be passed to `AFURLSessionManager -uploadTaskWithRequest:fromFile:progress:completionHandler:`, or have its contents read into an `NSData` that's assigned to the `HTTPBody` property of the request.
 
  @see https://github.com/AFNetworking/AFNetworking/issues/1398
+    
+    通过移除请求中的http请求提流来床架一个NSMutableURLRequest对象，在定制文件异步写入内容，当完成时会调用对应block
+    多部件请求，请求的HTTPBodyStream属性必须为空
+    将多部分表单内容写入的文件URL
+    执行完毕的block
+    // 这里有一个bug
  */
 - (NSMutableURLRequest *)requestWithMultipartFormRequest:(NSURLRequest *)request
                              writingStreamContentsToFile:(NSURL *)fileURL
@@ -342,6 +374,8 @@ forHTTPHeaderField:(NSString *)field;
 
 /**
  The `AFMultipartFormData` protocol defines the methods supported by the parameter in the block argument of `AFHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:`.
+ 
+    AFMultipartFormData协议定义了支持AFHTTPRequestSerializer -multipartFormRequestWithMethod:URLString:parameters:constructingBodyWithBlock:方法的参数
  */
 @protocol AFMultipartFormData
 
@@ -355,6 +389,13 @@ forHTTPHeaderField:(NSString *)field;
  @param error If an error occurs, upon return contains an `NSError` object that describes the problem.
 
  @return `YES` if the file data was successfully appended, otherwise `NO`.
+ 
+    附加了HTTP头`Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`，依据编码的文件数据和多部件表单
+    对应的数据的文件名和MIME类型会自动生成，分别使用`fileURL`的最后一个路径组件和`fileURL`扩展的系统相关MIME类型。
+    fileURL:    文件内容会被附加到表格，这个URL对应文件的地址，参数不能为空
+    name:       指定数据相关的名称，这个参数不能为空
+    error:      如果错误产生了，会返回个NSError对象来描述问题
+    如果返回yes，文件数据成功被附件，否则为NO
  */
 - (BOOL)appendPartWithFileURL:(NSURL *)fileURL
                          name:(NSString *)name
@@ -370,6 +411,15 @@ forHTTPHeaderField:(NSString *)field;
  @param error If an error occurs, upon return contains an `NSError` object that describes the problem.
 
  @return `YES` if the file data was successfully appended otherwise `NO`.
+ 
+    附加了HTTP头`Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`，依据编码的文件数据和多部件表单
+ 
+    fileURL:    文件内容会被附加到表格，这个URL对应文件的地址，参数不能为空
+    name:       指定数据相关的名称，这个参数不能为空
+    error:      如果错误产生了，会返回个NSError对象来描述问题
+    mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
+    如果返回yes，文件数据成功被附件，否则为NO
+ 
  */
 - (BOOL)appendPartWithFileURL:(NSURL *)fileURL
                          name:(NSString *)name
@@ -385,6 +435,14 @@ forHTTPHeaderField:(NSString *)field;
  @param fileName The filename to be associated with the specified input stream. This parameter must not be `nil`.
  @param length The length of the specified input stream in bytes.
  @param mimeType The MIME type of the specified data. (For example, the MIME type for a JPEG image is image/jpeg.) For a list of valid MIME types, see http://www.iana.org/assignments/media-types/. This parameter must not be `nil`.
+ 
+ 附加了HTTP头`Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`，依据编码的文件数据和多部件表单
+ 
+ inputStream： 加入到表单数据中的输入流
+ name:       指定输入流相关的名称，这个参数不能为空
+ fileName:   指定输入流相关的文件名称，不能为空
+ length：     指定输入流的长度byte
+ mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
  */
 - (void)appendPartWithInputStream:(nullable NSInputStream *)inputStream
                              name:(NSString *)name
@@ -399,6 +457,13 @@ forHTTPHeaderField:(NSString *)field;
  @param name The name to be associated with the specified data. This parameter must not be `nil`.
  @param fileName The filename to be associated with the specified data. This parameter must not be `nil`.
  @param mimeType The MIME type of the specified data. (For example, the MIME type for a JPEG image is image/jpeg.) For a list of valid MIME types, see http://www.iana.org/assignments/media-types/. This parameter must not be `nil`.
+ 
+ 附加了HTTP头`Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`，依据编码的文件数据和多部件表单
+ 
+ data:       被编码和附加到表单数据的数据
+ name:       指定数据相关的名称，这个参数不能为空
+ fileName:   指定输入流相关的文件名称，不能为空
+ mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
  */
 - (void)appendPartWithFileData:(NSData *)data
                           name:(NSString *)name
@@ -410,6 +475,11 @@ forHTTPHeaderField:(NSString *)field;
 
  @param data The data to be encoded and appended to the form data.
  @param name The name to be associated with the specified data. This parameter must not be `nil`.
+ 
+ 附加了HTTP头`Content-Disposition: file; filename=#{generated filename}; name=#{name}"` and `Content-Type: #{generated mimeType}`，依据编码的文件数据和多部件表单
+ 
+ data:       被编码和附加到表单数据的数据
+ name:       指定数据相关的名称，这个参数不能为空
  */
 
 - (void)appendPartWithFormData:(NSData *)data
@@ -421,6 +491,10 @@ forHTTPHeaderField:(NSString *)field;
 
  @param headers The HTTP headers to be appended to the form data.
  @param body The data to be encoded and appended to the form data. This parameter must not be `nil`.
+ 
+ 附加HTTP标头，后跟编码数据和多部分表单边界。
+ headers:   加入到表单数据的HTTP头
+ body:      被编码和附加到表单数据的数据。不能为空
  */
 - (void)appendPartWithHeaders:(nullable NSDictionary <NSString *, NSString *> *)headers
                          body:(NSData *)body;
@@ -432,6 +506,9 @@ forHTTPHeaderField:(NSString *)field;
 
  @param numberOfBytes Maximum packet size, in number of bytes. The default packet size for an input stream is 16kb.
  @param delay Duration of delay each time a packet is read. By default, no delay is set.
+ 
+    节流阀请求带宽，通过限制数据包大小并为从上传流读取的每个块添加延迟来请求带宽
+    当通过3G或EDGE连接上传时，请求可能会失败，并显示“请求正文流耗尽”。 根据推荐值（`kAFUploadStream3GSuggestedPacketSize`和`kAFUploadStream3GSuggestedDelay'）设置最大数据包大小和延迟可降低输入流超出其分配带宽的风险。 不幸的是，没有确定的方法来区分通过NSURLConnection的3G，EDGE或LTE连接。 因此，不建议仅基于网络可达性来限制带宽。 相反，您应该考虑检查故障阻塞中的“请求正文流耗尽”，然后使用节制的带宽重试请求。
  */
 - (void)throttleBandwidthWithPacketSize:(NSUInteger)numberOfBytes
                                   delay:(NSTimeInterval)delay;
@@ -442,11 +519,15 @@ forHTTPHeaderField:(NSString *)field;
 
 /**
  `AFJSONRequestSerializer` is a subclass of `AFHTTPRequestSerializer` that encodes parameters as JSON using `NSJSONSerialization`, setting the `Content-Type` of the encoded request to `application/json`.
+ 
+    AFJSONRequestSerializer是AFHTTPRequestSerializer的子类，使用NSJSONSerialization将json最为编码参数，设置编码请求的Content-Type为application/json
  */
 @interface AFJSONRequestSerializer : AFHTTPRequestSerializer
 
 /**
  Options for writing the request JSON data from Foundation objects. For possible values, see the `NSJSONSerialization` documentation section "NSJSONWritingOptions". `0` by default.
+ 
+    从Foundation对象中写入请求JSON数据的选项。 有关可能的值，请参见“NSJSONSerialization”文档一节“NSJSONWritingOptions”。 `0`默认
  */
 @property (nonatomic, assign) NSJSONWritingOptions writingOptions;
 
@@ -454,6 +535,9 @@ forHTTPHeaderField:(NSString *)field;
  Creates and returns a JSON serializer with specified reading and writing options.
 
  @param writingOptions The specified JSON writing options.
+ 
+    通过特定的读写选项，来创建返回一个JSON序列化对象
+    writingOptions: 特定的JSON写入选项
  */
 + (instancetype)serializerWithWritingOptions:(NSJSONWritingOptions)writingOptions;
 
@@ -463,16 +547,22 @@ forHTTPHeaderField:(NSString *)field;
 
 /**
  `AFPropertyListRequestSerializer` is a subclass of `AFHTTPRequestSerializer` that encodes parameters as JSON using `NSPropertyListSerializer`, setting the `Content-Type` of the encoded request to `application/x-plist`.
+ 
+    AFPropertyListRequestSerializer是AFHTTPRequestSerializer的子类，使用NSPropertyListSerializer将json最为编码参数，设置编码请求的Content-Type为application/x-plist
  */
 @interface AFPropertyListRequestSerializer : AFHTTPRequestSerializer
 
 /**
  The property list format. Possible values are described in "NSPropertyListFormat".
+ 
+ 属性清单的格式，参看NSPropertyListFormat
  */
 @property (nonatomic, assign) NSPropertyListFormat format;
 
 /**
  @warning The `writeOptions` property is currently unused.
+ 
+    警告：writeOptions属性当前未使用
  */
 @property (nonatomic, assign) NSPropertyListWriteOptions writeOptions;
 
@@ -483,6 +573,11 @@ forHTTPHeaderField:(NSString *)field;
  @param writeOptions The property list write options.
 
  @warning The `writeOptions` property is currently unused.
+ 
+ 通过特定的格式，读写选项，来创建返回一个属性列表序列化对象
+ format: 属性列表的格式
+ writeOptions: 属性列表的写入选项
+ 警告：writeOptions属性当前未使用
  */
 + (instancetype)serializerWithFormat:(NSPropertyListFormat)format
                         writeOptions:(NSPropertyListWriteOptions)writeOptions;
@@ -506,6 +601,8 @@ forHTTPHeaderField:(NSString *)field;
 
  `AFURLRequestSerializationErrorDomain`
  AFURLRequestSerializer errors. Error codes for `AFURLRequestSerializationErrorDomain` correspond to codes in `NSURLErrorDomain`.
+ 
+ 预定义以下错误域
  */
 FOUNDATION_EXPORT NSString * const AFURLRequestSerializationErrorDomain;
 
