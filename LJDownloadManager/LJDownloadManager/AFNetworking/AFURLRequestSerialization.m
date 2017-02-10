@@ -115,13 +115,13 @@ NSString * AFPercentEscapedStringFromString(NSString *string) {
 
 FOUNDATION_EXPORT NSArray * AFQueryStringPairsFromDictionary(NSDictionary *dictionary);
 FOUNDATION_EXPORT NSArray * AFQueryStringPairsFromKeyAndValue(NSString *key, id value);
-
+// 把参数给AFQueryStringPairsFromDictionary，拿到AF的一个类型的数据就一个key，value对象，在URLEncodedStringValue拼接keyValue，一个加到数组里
 NSString * AFQueryStringFromParameters(NSDictionary *parameters) {
     NSMutableArray *mutablePairs = [NSMutableArray array];
     for (AFQueryStringPair *pair in AFQueryStringPairsFromDictionary(parameters)) {
         [mutablePairs addObject:[pair URLEncodedStringValue]];
     }
-
+    //拆分数组返回参数字符串
     return [mutablePairs componentsJoinedByString:@"&"];
 }
 
@@ -131,9 +131,13 @@ NSArray * AFQueryStringPairsFromDictionary(NSDictionary *dictionary) {
 
 NSArray * AFQueryStringPairsFromKeyAndValue(NSString *key, id value) {
     NSMutableArray *mutableQueryStringComponents = [NSMutableArray array];
-
+    // 根据需要排列的对象的description来进行升序排列，并且selector使用的是compare:
+    // 因为对象的description返回的是NSString，所以此处compare:使用的是NSString的compare函数
+    // 即@[@"foo", @"bar", @"bae"] ----> @[@"bae", @"bar",@"foo"]
     NSSortDescriptor *sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"description" ascending:YES selector:@selector(compare:)];
 
+    
+    //判断vaLue是什么类型的，然后去递归调用自己，直到解析的是除了array dic set以外的元素，然后把得到的参数数组返回。
     if ([value isKindOfClass:[NSDictionary class]]) {
         NSDictionary *dictionary = value;
         // Sort dictionary keys to ensure consistent ordering in query string, which is important when deserializing potentially ambiguous sequences, such as an array of dictionaries
@@ -159,6 +163,26 @@ NSArray * AFQueryStringPairsFromKeyAndValue(NSString *key, id value) {
 
     return mutableQueryStringComponents;
 }
+
+// 上面方法中的具体实现效果
+/*  @{
+    @"name" : @"bang",
+    @"phone": @{@"mobile": @"xx", @"home": @"xx"},
+    @"families": @[@"father", @"mother"],
+    @"nums": [NSSet setWithObjects:@"1", @"2", nil]
+    }
+->
+  @[
+    field: @"name", value: @"bang",
+    field: @"phone[mobile]", value: @"xx",
+    field: @"phone[home]", value: @"xx",
+    field: @"families[]", value: @"father",
+    field: @"families[]", value: @"mother",
+    field: @"nums", value: @"1",
+    field: @"nums", value: @"2",
+    ]
+->
+name=bang&phone[mobile]=xx&phone[home]=xx&families[]=father&families[]=mother&nums=1&num=2     */
 
 #pragma mark -
 
@@ -376,7 +400,7 @@ forHTTPHeaderField:(NSString *)field
         // 见- (void)observeValueForKeyPath:(NSString *)keyPath和
         // [self addObserver:self forKeyPath:keyPath options:NSKeyValueObservingOptionNew context:AFHTTPRequestSerializerObserverContext];
         if ([self.mutableObservedChangedKeyPaths containsObject:keyPath]) {
-            // 使用KVC来设定具体的值
+            // 使用KVC来设定具体的值，设定到请求的request中
             [mutableRequest setValue:[self valueForKeyPath:keyPath] forKey:keyPath];
         }
     }
@@ -485,9 +509,10 @@ forHTTPHeaderField:(NSString *)field
 {
     NSParameterAssert(request);
     
-    // copy 一次请求对象
+    // copy 一次request对象
     NSMutableURLRequest *mutableRequest = [request mutableCopy];
 
+    // 遍历自己的header对象，如果有值的话，设定到请求中去
     [self.HTTPRequestHeaders enumerateKeysAndObjectsUsingBlock:^(id field, id value, BOOL * __unused stop) {
         if (![request valueForHTTPHeaderField:field]) {
             [mutableRequest setValue:value forHTTPHeaderField:field];
@@ -496,10 +521,12 @@ forHTTPHeaderField:(NSString *)field
 
     NSString *query = nil;
     if (parameters) {
+        // 如果设定了queryStringSerialization这个block，那么就是自定义了解析方式
         if (self.queryStringSerialization) {
             NSError *serializationError;
             query = self.queryStringSerialization(request, parameters, &serializationError);
-
+            
+            // 如果发生错误的话，返回nil
             if (serializationError) {
                 if (error) {
                     *error = serializationError;
@@ -508,6 +535,7 @@ forHTTPHeaderField:(NSString *)field
                 return nil;
             }
         } else {
+            // 如果不设定queryStringSerialization这个block，那么就按照默认的方式来解析，默认方式是通过&来拼接
             switch (self.queryStringSerializationStyle) {
                 case AFHTTPRequestQueryStringDefaultStyle:
                     query = AFQueryStringFromParameters(parameters);
@@ -516,11 +544,14 @@ forHTTPHeaderField:(NSString *)field
         }
     }
 
+    // 在初始化方法中self.HTTPMethodsEncodingParametersInURI为一个无序数组，包含@"GET", @"HEAD", @"DELETE"三种请求方式
     if ([self.HTTPMethodsEncodingParametersInURI containsObject:[[request HTTPMethod] uppercaseString]]) {
         if (query && query.length > 0) {
+            // For example, in the URL http://www.example.com/index.php?key1=value1&key2=value2, the query string is key1=value1&key2=value2.
             mutableRequest.URL = [NSURL URLWithString:[[mutableRequest.URL absoluteString] stringByAppendingFormat:mutableRequest.URL.query ? @"&%@" : @"?%@", query]];
         }
     } else {
+        // post put请求的时候，将query拼接到http body中
         // #2864: an empty string is a valid x-www-form-urlencoded payload
         if (!query) {
             query = @"";
