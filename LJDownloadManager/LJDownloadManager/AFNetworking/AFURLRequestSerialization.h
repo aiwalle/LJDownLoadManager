@@ -147,6 +147,10 @@ typedef NS_ENUM(NSUInteger, AFHTTPRequestQueryStringSerializationStyle) {
  @see NSMutableURLRequest -setCachePolicy:
  
     创建请求的缓存策略，NSURLRequestUseProtocolCachePolicy是默认的
+    该策略表示
+    如果缓存不存在，直接从服务端获取。如果缓存存在，会根据response中的Cache-Control字段判断
+    下一步操作，如: Cache-Control字段为must-revalidata, 则 询问服务端该数据是否有更新，无更新话
+    直接返回给用户缓存数据，若已更新，则请求服务端.
  */
 @property (nonatomic, assign) NSURLRequestCachePolicy cachePolicy;
 
@@ -156,6 +160,8 @@ typedef NS_ENUM(NSUInteger, AFHTTPRequestQueryStringSerializationStyle) {
  @see NSMutableURLRequest -setHTTPShouldHandleCookies:
  
     创建请求是够使用默认的cookie协议，默认是yes
+    如果设置HTTPShouldHandleCookies为YES，就处理存储在NSHTTPCookieStore中的cookies
+    HTTPShouldHandleCookies表示是否应该给request设置cookie并随request一起发送出去
  */
 @property (nonatomic, assign) BOOL HTTPShouldHandleCookies;
 
@@ -358,7 +364,7 @@ forHTTPHeaderField:(NSString *)field;
 
  @see https://github.com/AFNetworking/AFNetworking/issues/1398
     
-    通过移除请求中的http请求提流来床架一个NSMutableURLRequest对象，在定制文件异步写入内容，当完成时会调用对应block
+    通过移除请求中的http请求提流来创建一个NSMutableURLRequest对象，在定制文件异步写入内容，当完成时会调用对应block
     多部件请求，请求的HTTPBodyStream属性必须为空
     将多部分表单内容写入的文件URL
     执行完毕的block
@@ -396,6 +402,7 @@ forHTTPHeaderField:(NSString *)field;
     name:       指定数据相关的名称，这个参数不能为空
     error:      如果错误产生了，会返回个NSError对象来描述问题
     如果返回yes，文件数据成功被附件，否则为NO
+    根据文件位置构造数据源，使用文件类型名作为mimeType
  */
 - (BOOL)appendPartWithFileURL:(NSURL *)fileURL
                          name:(NSString *)name
@@ -419,7 +426,7 @@ forHTTPHeaderField:(NSString *)field;
     error:      如果错误产生了，会返回个NSError对象来描述问题
     mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
     如果返回yes，文件数据成功被附件，否则为NO
- 
+    根据文件位置构造数据源，需要提供mimeType
  */
 - (BOOL)appendPartWithFileURL:(NSURL *)fileURL
                          name:(NSString *)name
@@ -443,6 +450,7 @@ forHTTPHeaderField:(NSString *)field;
  fileName:   指定输入流相关的文件名称，不能为空
  length：     指定输入流的长度byte
  mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
+ 直接使用NSInputStream作为数据源
  */
 - (void)appendPartWithInputStream:(nullable NSInputStream *)inputStream
                              name:(NSString *)name
@@ -464,6 +472,7 @@ forHTTPHeaderField:(NSString *)field;
  name:       指定数据相关的名称，这个参数不能为空
  fileName:   指定输入流相关的文件名称，不能为空
  mimetype:   文件数据的声明MIME类型对象，这个参数不能为空
+ 使用NSData作为数据源
  */
 - (void)appendPartWithFileData:(NSData *)data
                           name:(NSString *)name
@@ -480,6 +489,7 @@ forHTTPHeaderField:(NSString *)field;
  
  data:       被编码和附加到表单数据的数据
  name:       指定数据相关的名称，这个参数不能为空
+ 使用NSData作为数据源，NSData并不是一个文件，可能只是一个字符串
  */
 
 - (void)appendPartWithFormData:(NSData *)data

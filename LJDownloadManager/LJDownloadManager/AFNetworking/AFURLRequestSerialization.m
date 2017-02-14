@@ -194,10 +194,13 @@ name=bang&phone[mobile]=xx&phone[home]=xx&families[]=father&families[]=mother&nu
 @end
 
 #pragma mark -
-
+// 定义了一个static的方法，表示该方法只能在本文件中使用
+// 函数整体上使用了单例模式
 static NSArray * AFHTTPRequestSerializerObservedKeyPaths() {
     static NSArray *_AFHTTPRequestSerializerObservedKeyPaths = nil;
     static dispatch_once_t onceToken;
+    // 此处需要observer的keypath为allowsCellularAccess、cachePolicy、HTTPShouldHandleCookies
+    // HTTPShouldUsePipelining、networkServiceType、timeoutInterval
     dispatch_once(&onceToken, ^{
         _AFHTTPRequestSerializerObservedKeyPaths = @[NSStringFromSelector(@selector(allowsCellularAccess)), NSStringFromSelector(@selector(cachePolicy)), NSStringFromSelector(@selector(HTTPShouldHandleCookies)), NSStringFromSelector(@selector(HTTPShouldUsePipelining)), NSStringFromSelector(@selector(networkServiceType)), NSStringFromSelector(@selector(timeoutInterval))];
     });
@@ -283,10 +286,11 @@ static void *AFHTTPRequestSerializerObserverContext = &AFHTTPRequestSerializerOb
     }
 }
 
-#pragma mark -
+#pragma mark - MUTABLEOBSERVEDCHANGEDKEYPATHS
 
 // Workarounds for crashing behavior using Key-Value Observing with XCTest
 // See https://github.com/AFNetworking/AFNetworking/issues/2523
+
 
 - (void)setAllowsCellularAccess:(BOOL)allowsCellularAccess {
     [self willChangeValueForKey:NSStringFromSelector(@selector(allowsCellularAccess))];
@@ -383,16 +387,20 @@ forHTTPHeaderField:(NSString *)field
                                      error:(NSError *__autoreleasing *)error
 {
     // 如果这里的参数为空，断言会抛出异常
+    // 方法或函数应当在代码最开始处使用 NSParameterAssert / NSCParameterAssert 来强制输入的值满足先验条件，这是一条金科玉律；其他情况下使用 NSAssert / NSCAssert。
+    // 第一步：进行url转化和参数化断言
     NSParameterAssert(method);
     NSParameterAssert(URLString);
 
     NSURL *url = [NSURL URLWithString:URLString];
 
     NSParameterAssert(url);
-
+    // 第二步：使用url构建并初始化NSMutableURLRequest，然后设置HTTPMethod
     NSMutableURLRequest *mutableRequest = [[NSMutableURLRequest alloc] initWithURL:url];
     mutableRequest.HTTPMethod = method;
 
+    // 第三步：给NSMutableURLRequest自带的属性赋值
+    
     // ljquestion2
     // AFHTTPRequestSerializerObservedKeyPaths里面存放着AFHTTPRequestSerializer的所有属性字符串
     for (NSString *keyPath in AFHTTPRequestSerializerObservedKeyPaths()) {
@@ -404,12 +412,26 @@ forHTTPHeaderField:(NSString *)field
             [mutableRequest setValue:[self valueForKeyPath:keyPath] forKey:keyPath];
         }
     }
-
+    
+    // 第四步：将传入的parameters进行编码，并添加到request中
     mutableRequest = [[self requestBySerializingRequest:mutableRequest withParameters:parameters error:error] mutableCopy];
 
 	return mutableRequest;
 }
-
+/*
+ 除了需要使用普通的request构造函数来构造request
+ 还需要根据multipart独有的属性来修饰这个request，其中最关键的就是要构造http body部分
+ 示例：
+ AFHTTPSessionManager *manager = [AFHTTPSessionManager manager];
+ [manager POST:@"postURLString" parameters:@{@"Filename":@"HTTP.pdf"} constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+     [formData appendPartWithFileData:[pdf文件具体内容(NSData *)]
+     name:@"file000"
+     fileName:@"HTTP协议详解.pdf"
+     mimeType:@"application/octet-stream"];
+     [formData appendPartWithFormData:[@"Submit Query" dataUsingEncoding:NSUTF8StringEncoding]
+     name:@"Upload"];
+ } progress:nil success:nil failure:nil];
+ */
 - (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method
                                               URLString:(NSString *)URLString
                                              parameters:(NSDictionary *)parameters
@@ -420,10 +442,12 @@ forHTTPHeaderField:(NSString *)field
     NSParameterAssert(![method isEqualToString:@"GET"] && ![method isEqualToString:@"HEAD"]);
 
     NSMutableURLRequest *mutableRequest = [self requestWithMethod:method URLString:URLString parameters:nil error:error];
-
+    // 使用initWithURLRequest:stringEncoding:来初始化一个AFStreamingMultipartFormData变量
+    // 每个AFStreamMultipartFormData其实都是对应一个上面举的那个例子，主要是为了构建bodyStream
     __block AFStreamingMultipartFormData *formData = [[AFStreamingMultipartFormData alloc] initWithURLRequest:mutableRequest stringEncoding:NSUTF8StringEncoding];
-
+    // 处理parameters，比如上面的@"Filename":"HTTP.pdf"，首先构建一个AFQueryStringPair，其中field为"Filename"，value为"HTTP.pdf"
     if (parameters) {
+        // 然后会根据对应value的类型，构建出一个NSData变量。比如此处的value是一个NSString，所以调用//data = [[pair.value description] dataUsingEncoding:self.stringEncoding];将NSString->NSData
         for (AFQueryStringPair *pair in AFQueryStringPairsFromDictionary(parameters)) {
             NSData *data = nil;
             if ([pair.value isKindOfClass:[NSData class]]) {
@@ -433,17 +457,18 @@ forHTTPHeaderField:(NSString *)field
             } else {
                 data = [[pair.value description] dataUsingEncoding:self.stringEncoding];
             }
-
+            // bodyStream构造最主要的部分就在这了（虽然后面requestByFinalizingMultipartFormData函数还会稍微处理一下）
+            // 根据data和name构建Request的header和body
             if (data) {
                 [formData appendPartWithFormData:data name:[pair.field description]];
             }
         }
     }
-
+    // 参考上面的例子，其实还是往formData中添加数据
     if (block) {
         block(formData);
     }
-
+    // 做最终的处理，比如设置一下MultipartRequest的bodyStream或者其特有的content-type等等
     return [formData requestByFinalizingMultipartFormData];
 }
 
@@ -513,12 +538,14 @@ forHTTPHeaderField:(NSString *)field
     NSMutableURLRequest *mutableRequest = [request mutableCopy];
 
     // 遍历自己的header对象，如果有值的话，设定到请求中去
+    // 1.设置request的http header field
     [self.HTTPRequestHeaders enumerateKeysAndObjectsUsingBlock:^(id field, id value, BOOL * __unused stop) {
         if (![request valueForHTTPHeaderField:field]) {
             [mutableRequest setValue:value forHTTPHeaderField:field];
         }
     }];
-
+    
+    // 2.根据parameter来构建查询字符串
     NSString *query = nil;
     if (parameters) {
         // 如果设定了queryStringSerialization这个block，那么就是自定义了解析方式
@@ -545,6 +572,7 @@ forHTTPHeaderField:(NSString *)field
     }
 
     // 在初始化方法中self.HTTPMethodsEncodingParametersInURI为一个无序数组，包含@"GET", @"HEAD", @"DELETE"三种请求方式
+    // 3.最后判断该request中是否包含了GET、HEAD、DELETE
     if ([self.HTTPMethodsEncodingParametersInURI containsObject:[[request HTTPMethod] uppercaseString]]) {
         if (query && query.length > 0) {
             // For example, in the URL http://www.example.com/index.php?key1=value1&key2=value2, the query string is key1=value1&key2=value2.
@@ -585,6 +613,10 @@ forHTTPHeaderField:(NSString *)field
         if ([change[NSKeyValueChangeNewKey] isEqual:[NSNull null]]) {
             [self.mutableObservedChangedKeyPaths removeObject:keyPath];
         } else {
+            // 也就是当AFHTTPRequestSerializerObserverContext中的Value变化了（且变化后的新值部位NSNull,null）
+            // 就会响应observeValueForKeyPath这个函数从而mutableObservedChangedKeyPaths会添加这个keyPath
+            // 现在的问题是 哪里会产生keypath的值变化了的事件？
+            // 参考代码位置：MUTABLEOBSERVEDCHANGEDKEYPATHS
             [self.mutableObservedChangedKeyPaths addObject:keyPath];
         }
     }
@@ -630,22 +662,22 @@ forHTTPHeaderField:(NSString *)field
 
 @end
 
-#pragma mark -
-
+#pragma mark - boundary的构建方式
+// 使用两个十六进制随机数拼接在Boundary后面来表示分隔符
 static NSString * AFCreateMultipartFormBoundary() {
     return [NSString stringWithFormat:@"Boundary+%08X%08X", arc4random(), arc4random()];
 }
 
 static NSString * const kAFMultipartFormCRLF = @"\r\n";
-
+// 如果是开头分隔符的，那么只需在分隔符结尾加一个换行符
 static inline NSString * AFMultipartFormInitialBoundary(NSString *boundary) {
     return [NSString stringWithFormat:@"--%@%@", boundary, kAFMultipartFormCRLF];
 }
-
+// 如果是中间部分分隔符，那么需要分隔符前面和结尾都加换行符
 static inline NSString * AFMultipartFormEncapsulationBoundary(NSString *boundary) {
     return [NSString stringWithFormat:@"%@--%@%@", kAFMultipartFormCRLF, boundary, kAFMultipartFormCRLF];
 }
-
+// 如果是末尾，还得使用--分隔符--作为请求体的结束标志
 static inline NSString * AFMultipartFormFinalBoundary(NSString *boundary) {
     return [NSString stringWithFormat:@"%@--%@--%@", kAFMultipartFormCRLF, boundary, kAFMultipartFormCRLF];
 }
@@ -698,8 +730,8 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
 @interface AFStreamingMultipartFormData ()
 @property (readwrite, nonatomic, copy) NSMutableURLRequest *request;
 @property (readwrite, nonatomic, assign) NSStringEncoding stringEncoding;
-@property (readwrite, nonatomic, copy) NSString *boundary;
-@property (readwrite, nonatomic, strong) AFMultipartBodyStream *bodyStream;
+@property (readwrite, nonatomic, copy) NSString *boundary;          // multipart协议中的分割符
+@property (readwrite, nonatomic, strong) AFMultipartBodyStream *bodyStream;         // 代表了消息体
 @end
 
 @implementation AFStreamingMultipartFormData
@@ -831,7 +863,7 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
 
     [self appendPartWithHeaders:mutableHeaders body:data];
 }
-
+// 构建AFHTTPBodyPart对象
 - (void)appendPartWithHeaders:(NSDictionary *)headers
                          body:(NSData *)body
 {
@@ -853,16 +885,19 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
     self.bodyStream.numberOfBytesInPacket = numberOfBytes;
     self.bodyStream.delay = delay;
 }
-
+// multipart除了使用普通协议请求头的构建方法，还会在下面的方法中构建自己独有的请求头
 - (NSMutableURLRequest *)requestByFinalizingMultipartFormData {
+    // 如果bodyStream为空，就与普通request相同
     if ([self.bodyStream isEmpty]) {
         return self.request;
     }
 
     // Reset the initial and final boundaries to ensure correct Content-Length
+    // 重新设定bodyStream中那个AFHTTPBodyPart对象是开头，哪个是结尾，为了正确计算Content-Length
     [self.bodyStream setInitialAndFinalBoundaries];
     [self.request setHTTPBodyStream:self.bodyStream];
-
+    
+    // http://www.cnblogs.com/polobymulberry/p/5170093.html
     [self.request setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", self.boundary] forHTTPHeaderField:@"Content-Type"];
     [self.request setValue:[NSString stringWithFormat:@"%llu", [self.bodyStream contentLength]] forHTTPHeaderField:@"Content-Length"];
 
@@ -907,6 +942,7 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
     return self;
 }
 
+// 这里是对将要设置的Content-Length做下预处理
 - (void)setInitialAndFinalBoundaries {
     if ([self.HTTPBodyParts count] > 0) {
         for (AFHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
@@ -1006,9 +1042,11 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
 - (void)removeFromRunLoop:(__unused NSRunLoop *)aRunLoop
                   forMode:(__unused NSString *)mode
 {}
-
+// AFMultipartBodyStream函数
+// 计算上面那个bodyStream的总长度作为Content-Length
 - (unsigned long long)contentLength {
     unsigned long long length = 0;
+    // 注意bodyStream是由多个AFHTTPBodyPart对象组成的，比如上面那个例子就是有三个对象组成
     for (AFHTTPBodyPart *bodyPart in self.HTTPBodyParts) {
         length += [bodyPart contentLength];
     }
@@ -1114,18 +1152,18 @@ typedef enum {
 
     return [NSString stringWithString:headerString];
 }
-
+// 使用AFHTTPBodyPart中hasInitialBoundary和hasFinalBoundary属性表示开头bodyPart和结尾bodyPart
 - (unsigned long long)contentLength {
     unsigned long long length = 0;
-
+    // 需要拼接上分割符
     NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? AFMultipartFormInitialBoundary(self.boundary) : AFMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
     length += [encapsulationBoundaryData length];
-
+    // 每个AFHTTPBodyPart对象中还有Content-Disposition等header-使用stringForHeader获取
     NSData *headersData = [[self stringForHeaders] dataUsingEncoding:self.stringEncoding];
     length += [headersData length];
-
+    // 加上每个AFHTTPBodyPart对象具体的数据（比如文件内容）长度
     length += _bodyContentLength;
-
+    // 如果是最后一个AFHTTPBodyPart，还需要加上“--分隔符--”的长度
     NSData *closingBoundaryData = ([self hasFinalBoundary] ? [AFMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
     length += [closingBoundaryData length];
 

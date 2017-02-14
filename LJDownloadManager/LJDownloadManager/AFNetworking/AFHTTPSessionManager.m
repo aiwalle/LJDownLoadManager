@@ -140,7 +140,11 @@
                                                  downloadProgress:downloadProgress
                                                           success:success
                                                           failure:failure];
-
+    /*
+     suspend -- 可以让当前的任务暂停
+     resume ---- 方法不仅可以启动任务,还可以唤醒suspend状态的任务
+     cancel ----- 方法可以取消当前的任务,你也可以向处于suspend状态的任务发送cancel消息,任务如果被取消便不能再恢复到之前的状态.
+     */
     [dataTask resume];
 
     return dataTask;
@@ -273,7 +277,7 @@
                                          failure:(void (^)(NSURLSessionDataTask *, NSError *))failure
 {
     NSError *serializationError = nil;
-    // ljquestion1
+    
     NSMutableURLRequest *request = [self.requestSerializer requestWithMethod:method URLString:[[NSURL URLWithString:URLString relativeToURL:self.baseURL] absoluteString] parameters:parameters error:&serializationError];
     if (serializationError) {
         if (failure) {
@@ -345,10 +349,11 @@
 
     return self;
 }
-
+// 对baseURL,session.configuration,requestSerializer,responseSerializer,securityPolicy进行编码
 - (void)encodeWithCoder:(NSCoder *)coder {
+    // AFHTTPSessionManager的父类为AFURLSessionManager，所以先调用父类方法
     [super encodeWithCoder:coder];
-
+    // 因为configuration是一个对象，所以要考虑是否实现了NSCoding
     [coder encodeObject:self.baseURL forKey:NSStringFromSelector(@selector(baseURL))];
     if ([self.session.configuration conformsToProtocol:@protocol(NSCoding)]) {
         [coder encodeObject:self.session.configuration forKey:@"sessionConfiguration"];
@@ -361,7 +366,7 @@
 }
 
 #pragma mark - NSCopying
-
+// 深拷贝，递归地拷贝下去
 - (instancetype)copyWithZone:(NSZone *)zone {
     AFHTTPSessionManager *HTTPClient = [[[self class] allocWithZone:zone] initWithBaseURL:self.baseURL sessionConfiguration:self.session.configuration];
 

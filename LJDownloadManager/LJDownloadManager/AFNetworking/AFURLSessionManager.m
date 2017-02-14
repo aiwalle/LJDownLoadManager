@@ -201,6 +201,7 @@ didCompleteWithError:(NSError *)error
     userInfo[AFNetworkingTaskDidCompleteResponseSerializerKey] = manager.responseSerializer;
 
     //Performance Improvement from #2672
+    //具体可以查看#issue 2672。这里主要是针对大文件的时候，性能提升会很明显
     NSData *data = nil;
     if (self.mutableData) {
         data = [self.mutableData copy];
@@ -230,7 +231,7 @@ didCompleteWithError:(NSError *)error
         //url_session_manager_processing_queue AF的并行队列
         dispatch_async(url_session_manager_processing_queue(), ^{
             NSError *serializationError = nil;
-            //解析数据
+            //解析数据，根据对应的task和data将response data解析成可用的数据格式，比如JSON serializer就将data解析成JSON格式
             responseObject = [manager.responseSerializer responseObjectForResponse:task.response data:data error:&serializationError];
             //如果是下载文件，那么responseObject为下载的路径
             if (self.downloadFileURL) {
@@ -240,7 +241,7 @@ didCompleteWithError:(NSError *)error
             if (responseObject) {
                 userInfo[AFNetworkingTaskDidCompleteSerializedResponseKey] = responseObject;
             }
-            //如果解析错误
+            //序列化的时候出现错误
             if (serializationError) {
                 userInfo[AFNetworkingTaskDidCompleteErrorKey] = serializationError;
             }
@@ -266,7 +267,7 @@ didCompleteWithError:(NSError *)error
 {
     self.downloadProgress.totalUnitCount = dataTask.countOfBytesExpectedToReceive;
     self.downloadProgress.completedUnitCount = dataTask.countOfBytesReceived;
-
+    // 将每次获得的新数据附在mutableData上，来组成最终获得的所有数据
     [self.mutableData appendData:data];
 }
 
@@ -949,10 +950,15 @@ didBecomeInvalidWithError:(NSError *)error
     if (self.sessionDidBecomeInvalid) {
         self.sessionDidBecomeInvalid(session, error);
     }
-
+    // 当一个session无效时，post名为AFURLSessionDidInvalidateNotification的Notification
+    // 不过源代码中没有举例如何使用这个Notification，所以需要用户自己定义，比如结束进度条的显示啊。
     [[NSNotificationCenter defaultCenter] postNotificationName:AFURLSessionDidInvalidateNotification object:session];
 }
 // 总结一下，这个方法其实就是做https认证的
+// 该代理方法会在下面两种情况调用：
+// 1. 当服务器端要求客户端提供证书时或者进行NTLM认证（Windows NT LAN Manager，微软提出的WindowsNT挑战/响应验证机制）时，此方法允许你的app提供正确的挑战证书。
+// 2. 当某个session使用SSL/TLS协议，第一次和服务器端建立连接的时候，服务器会发送给iOS客户端一个证书，此方法允许你的app验证服务期端的证书链（certificate keychain）
+// 如果你没有实现该方法，该session会调用其NSURLSessionTaskDelegate的代理方法URLSession:task:didReceiveChallenge:completionHandler:
 - (void)URLSession:(NSURLSession *)session
 didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
  completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition disposition, NSURLCredential *credential))completionHandler
@@ -1113,7 +1119,7 @@ didCompleteWithError:(NSError *)error
     if (delegate) {
         //把代理转发给我们绑定的delegate
         [delegate URLSession:session task:task didCompleteWithError:error];
-
+        // 该task结束了，就移除对应的delegate
         [self removeDelegateForTask:task];
     }
 
@@ -1148,6 +1154,7 @@ didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask
     //因为转变了task，所以要对task做一个重新绑定
     AFURLSessionManagerTaskDelegate *delegate = [self delegateForTask:dataTask];
     if (delegate) {
+        // 将delegate关联的data task移除，换成新产生的download task
         [self removeDelegateForTask:dataTask];
         [self setDelegate:delegate forTask:downloadTask];
     }
@@ -1170,6 +1177,16 @@ didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask
     }
 }
 //当task接收到所有期望的数据后，session会调用此代理方法。
+/*
+ 该方法只会当request决定缓存response时候调用。作为准则，responses只会当以下条件都成立的时候返回缓存：
+ 
+ 该request是HTTP或HTTPS URL的请求（或者你自定义的网络协议，并且确保该协议支持缓存）
+ 确保request请求是成功的（返回的status code为200-299）
+ 返回的response是来自服务器端的，而非缓存中本身就有的
+ 提供的NSURLRequest对象的缓存策略要允许进行缓存
+ 服务器返回的response中与缓存相关的header要允许缓存
+ 该response的大小不能比提供的缓存空间大太多（比如你提供了一个磁盘缓存，那么response大小一定不能比磁盘缓存空间还要大5%）
+ */
 - (void)URLSession:(NSURLSession *)session
           dataTask:(NSURLSessionDataTask *)dataTask
  willCacheResponse:(NSCachedURLResponse *)proposedResponse
@@ -1188,6 +1205,7 @@ didBecomeDownloadTask:(NSURLSessionDownloadTask *)downloadTask
 //3、 当session中所有已经入队的消息被发送出去后，会调用该代理方法
 - (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session {
     if (self.didFinishEventsForBackgroundURLSession) {
+        // 意味着background session中的消息已经全部发送出去了，返回到主进程执行自定义的函数
         dispatch_async(dispatch_get_main_queue(), ^{
             self.didFinishEventsForBackgroundURLSession(session);
         });
@@ -1222,6 +1240,9 @@ didFinishDownloadingToURL:(NSURL *)location
     }
 }
 //周期性地通知下载进度调用
+// bytesWritten 表示自上次调用该方法后，接收到的数据字节数
+// totalBytesWritten 表示目前已经接收到的数据字节数
+// totalBytesExpectedToWrite 表示期望收到的文件总字节数，是由Content-Length header提供。如果没有提供，默认是NSURLSessionTransferSizeUnknown
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
       didWriteData:(int64_t)bytesWritten
@@ -1239,7 +1260,9 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite
         self.downloadTaskDidWriteData(session, downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite);
     }
 }
-//当下载被取消或者失败后重新恢复下载时调用，，，其实这个就是用来做断点续传的代理方法
+// 当下载被取消或者失败后重新恢复下载时调用，，，其实这个就是用来做断点续传的代理方法
+// fileOffset如果文件缓存策略或者最后文件更新日期阻止重用已经存在的文件内容，那么该值为0。
+// 否则，该值表示已经存在磁盘上的，不需要重新获取的数据
 - (void)URLSession:(NSURLSession *)session
       downloadTask:(NSURLSessionDownloadTask *)downloadTask
  didResumeAtOffset:(int64_t)fileOffset
