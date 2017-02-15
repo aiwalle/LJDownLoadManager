@@ -472,39 +472,47 @@ forHTTPHeaderField:(NSString *)field
     return [formData requestByFinalizingMultipartFormData];
 }
 
+// 将原来request中的HTTPBodyStream内容异步写入到指定文件中，随后调用completionHandler处理。最后返回新的request。
 - (NSMutableURLRequest *)requestWithMultipartFormRequest:(NSURLRequest *)request
                              writingStreamContentsToFile:(NSURL *)fileURL
                                        completionHandler:(void (^)(NSError *error))handler
 {
+    // 原先request的HTTPBodyStream不能为空
     NSParameterAssert(request.HTTPBodyStream);
+    // 文件路径要合法
     NSParameterAssert([fileURL isFileURL]);
 
     NSInputStream *inputStream = request.HTTPBodyStream;
+    // 使用outputStream将HTTPBodyStream的内容写入到路径为fileURL的文件中
     NSOutputStream *outputStream = [[NSOutputStream alloc] initWithURL:fileURL append:NO];
     __block NSError *error = nil;
-
+    // 异步执行写入操作
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // 指定在当前RunLoop中(currentRunLoop)运行inputStreamm/outputStream，意味着在currentRunLoop中处理流操作
         [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-
+        // 打开
         [inputStream open];
         [outputStream open];
 
         while ([inputStream hasBytesAvailable] && [outputStream hasSpaceAvailable]) {
             uint8_t buffer[1024];
-
+            // 每次从inputStream中读取最多1024bytes大小的数据，放在buffer中，给outputStream写入file
+            // question:这里到底是调用的NSInputStream的方法还是调用的当前文件的方法
             NSInteger bytesRead = [inputStream read:buffer maxLength:1024];
+            // 出现streamError或者bytesRead小于0都表示读取出错
             if (inputStream.streamError || bytesRead < 0) {
                 error = inputStream.streamError;
                 break;
             }
-
+            // 将上面读取的buffer写入到outputStream中，即写入文件
             NSInteger bytesWritten = [outputStream write:buffer maxLength:(NSUInteger)bytesRead];
+            // 出现streamError或者bytesWritten小于0都表示写入出错
             if (outputStream.streamError || bytesWritten < 0) {
                 error = outputStream.streamError;
                 break;
             }
-
+            // 表示读取写入完成
             if (bytesRead == 0 && bytesWritten == 0) {
                 break;
             }
@@ -512,14 +520,14 @@ forHTTPHeaderField:(NSString *)field
 
         [outputStream close];
         [inputStream close];
-
+        // 回到主进程执行handler
         if (handler) {
             dispatch_async(dispatch_get_main_queue(), ^{
                 handler(error);
             });
         }
     });
-
+    // 获取到新的request，并将新的request的HTTPBodyStream置为空
     NSMutableURLRequest *mutableRequest = [request mutableCopy];
     mutableRequest.HTTPBodyStream = nil;
 
@@ -968,24 +976,32 @@ NSTimeInterval const kAFUploadStream3GSuggestedDelay = 0.2;
 - (NSInteger)read:(uint8_t *)buffer
         maxLength:(NSUInteger)length
 {
+    // 输入流关闭状态，无法读取
     if ([self streamStatus] == NSStreamStatusClosed) {
         return 0;
     }
 
     NSInteger totalNumberOfBytesRead = 0;
-
+    // 一般来说都是直接读取length长度的数据，但是考虑到最后一次需要读出的数据长度(self.numberOfBytesInPacket)一般是小于length
+    // 所以此处使用了MIN(length, self.numberOfBytesInPacket)
     while ((NSUInteger)totalNumberOfBytesRead < MIN(length, self.numberOfBytesInPacket)) {
+        // 类似于我们构建request的逆向过程，我们对于HTTPBodyStream的读取也是分成一个一个AFHTTPBodyPart来的
+        // 如果当前AFHTTPBodyPart对象读取完成，那么就使用enumerator读取下一个AFHTTPBodyPart
         if (!self.currentHTTPBodyPart || ![self.currentHTTPBodyPart hasBytesAvailable]) {
             if (!(self.currentHTTPBodyPart = [self.HTTPBodyPartEnumerator nextObject])) {
                 break;
             }
         } else {
+            // 读取当前AFHTTPBodyPart对象
             NSUInteger maxLength = MIN(length, self.numberOfBytesInPacket) - (NSUInteger)totalNumberOfBytesRead;
+            // 使用的是AFHTTPBodyPart的read:maxLength:函数
             NSInteger numberOfBytesRead = [self.currentHTTPBodyPart read:&buffer[totalNumberOfBytesRead] maxLength:maxLength];
+            // 读取出错
             if (numberOfBytesRead == -1) {
                 self.streamError = self.currentHTTPBodyPart.inputStream.streamError;
                 break;
             } else {
+                // totalNumberOfBytesRead表示目前已经读取的字节数，可以作为读取后的数据放置于buffer的起始位置，如buffer[totalNumberOfBytesRead]
                 totalNumberOfBytesRead += numberOfBytesRead;
 
                 if (self.delay > 0.0f) {
@@ -1190,37 +1206,38 @@ typedef enum {
             return NO;
     }
 }
-
+// 对于单个AFHTTPBodyPart的读取函数- [read:maxLength:]：
 - (NSInteger)read:(uint8_t *)buffer
         maxLength:(NSUInteger)length
 {
     NSInteger totalNumberOfBytesRead = 0;
-
+    // 使用分隔符将对应bodyPart数据封装起来
     if (_phase == AFEncapsulationBoundaryPhase) {
         NSData *encapsulationBoundaryData = [([self hasInitialBoundary] ? AFMultipartFormInitialBoundary(self.boundary) : AFMultipartFormEncapsulationBoundary(self.boundary)) dataUsingEncoding:self.stringEncoding];
         totalNumberOfBytesRead += [self readData:encapsulationBoundaryData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
     }
-
+    // 如果读取到的是bodyPart对应的header部分，那么使用stringForHeaders获取到对应header，并读取到buffer中
     if (_phase == AFHeaderPhase) {
         NSData *headersData = [[self stringForHeaders] dataUsingEncoding:self.stringEncoding];
         totalNumberOfBytesRead += [self readData:headersData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
     }
-
+    // 如果读取到的是bodyPart的内容主体，即inputStream，那么就直接使用inputStream写入数据到buffer中
     if (_phase == AFBodyPhase) {
         NSInteger numberOfBytesRead = 0;
-
+        // 使用系统自带的NSInputStream的read:maxLength:函数读取
         numberOfBytesRead = [self.inputStream read:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
         if (numberOfBytesRead == -1) {
             return -1;
         } else {
             totalNumberOfBytesRead += numberOfBytesRead;
-
+            // 如果内容主体都读取完了，那么很有可能下一次读取的就是下一个bodyPart的header
+            // 所以此处要调用transitionToNextPhase，调整对应_phase
             if ([self.inputStream streamStatus] >= NSStreamStatusAtEnd) {
                 [self transitionToNextPhase];
             }
         }
     }
-
+    // 如果是最后一个AFHTTPBodyPart对象，那么就需要添加在末尾”--分隔符--"
     if (_phase == AFFinalBoundaryPhase) {
         NSData *closingBoundaryData = ([self hasFinalBoundary] ? [AFMultipartFormFinalBoundary(self.boundary) dataUsingEncoding:self.stringEncoding] : [NSData data]);
         totalNumberOfBytesRead += [self readData:closingBoundaryData intoBuffer:&buffer[totalNumberOfBytesRead] maxLength:(length - (NSUInteger)totalNumberOfBytesRead)];
@@ -1228,23 +1245,26 @@ typedef enum {
 
     return totalNumberOfBytesRead;
 }
-
+// 上面那个函数中大量使用了read:intoBuffer:maxLength:函数
+// 这里我们将read:intoBuffer:maxLength:理解成一种将NSData类型的data转化为(uint8_t *)类型的buffer的手段，核心是使用了NSData的getBytes:range:函数
 - (NSInteger)readData:(NSData *)data
            intoBuffer:(uint8_t *)buffer
             maxLength:(NSUInteger)length
 {
+    // 求取range，需要考虑文件末尾比maxLength会小的情况
     NSRange range = NSMakeRange((NSUInteger)_phaseReadOffset, MIN([data length] - ((NSUInteger)_phaseReadOffset), length));
+    // 核心：NSData *---->uint8_t*
     [data getBytes:buffer range:range];
-
+    
     _phaseReadOffset += range.length;
-
+    // 读取完成就更新_phase的状态
     if (((NSUInteger)_phaseReadOffset) >= [data length]) {
         [self transitionToNextPhase];
     }
 
     return (NSInteger)range.length;
 }
-
+// _phase状态转换
 - (BOOL)transitionToNextPhase {
     if (![[NSThread currentThread] isMainThread]) {
         dispatch_sync(dispatch_get_main_queue(), ^{

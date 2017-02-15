@@ -144,7 +144,10 @@ NS_ASSUME_NONNULL_BEGIN
 
  @return Whether or not to trust the server.
  
- 核心类  当服务器响应提出进行证书验证时，此方法将会被调用。然后app根据之前设置的验证策略来进行判断验证是否通过。
+    核心类  当服务器响应提出进行证书验证时，此方法将会被调用。然后app根据之前设置的验证策略来进行判断验证是否通过。
+    根据severTrust和domain来检查服务器端发来的证书是否可信
+    其中SecTrustRef是一个CoreFoundation类型，用于对服务器端传来的X.509证书评估的
+    而我们都知道，数字证书的签发机构CA，在接收到申请者的资料后进行核对并确定信息的真实有效，然后就会制作一份符合X.509标准的文件。证书中的证书内容包含的持有者信息和公钥等都是由申请者提供的，而数字签名则是CA机构对证书内容进行hash加密后得到的，而这个数字签名就是我们验证证书是否是有可信CA签发的数据。
  */
 - (BOOL)evaluateServerTrust:(SecTrustRef)serverTrust
                   forDomain:(nullable NSString *)domain;

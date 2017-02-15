@@ -365,7 +365,7 @@ forHTTPHeaderField:(NSString *)field;
  @see https://github.com/AFNetworking/AFNetworking/issues/1398
     
     通过移除请求中的http请求提流来创建一个NSMutableURLRequest对象，在定制文件异步写入内容，当完成时会调用对应block
-    多部件请求，请求的HTTPBodyStream属性必须为空
+    多部件请求，请求的HTTPBodyStream属性必须不为空
     将多部分表单内容写入的文件URL
     执行完毕的block
     // 这里有一个bug

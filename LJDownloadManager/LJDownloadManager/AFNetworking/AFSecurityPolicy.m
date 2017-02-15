@@ -48,14 +48,15 @@ static BOOL AFSecKeyIsEqualToKey(SecKeyRef key1, SecKeyRef key2) {
     return [AFSecKeyGetData(key1) isEqual:AFSecKeyGetData(key2)];
 #endif
 }
-
+// 此函数没什么特别要提及的，和AFPublicKeyTrustChainForServerTrust实现的原理基本一致
+// 区别仅仅在该函数是返回单个证书的公钥（所以传入的参数是一个证书），而AFPublicKeyTrustChainForServerTrust返回的是serverTrust的证书链中所有证书公钥
 static id AFPublicKeyForCertificate(NSData *certificate) {
     id allowedPublicKey = nil;
     SecCertificateRef allowedCertificate;
     SecPolicyRef policy = nil;
     SecTrustRef allowedTrust = nil;
     SecTrustResultType result;
-
+    // 因为此处传入的certificate参数是NSData类型的，所以需要使用SecCertificateCreateWithData来将NSData对象转化为SecCertificateRef对象
     allowedCertificate = SecCertificateCreateWithData(NULL, (__bridge CFDataRef)certificate);
     __Require_Quiet(allowedCertificate != NULL, _out);
 
@@ -197,7 +198,7 @@ static NSArray * AFPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
 + (instancetype)policyWithPinningMode:(AFSSLPinningMode)pinningMode {
     return [self policyWithPinningMode:pinningMode withPinnedCertificates:[self defaultPinnedCertificates]];
 }
-
+// 初始化AFSecurityPolicy对象的SSLPinningMode和pinnedCertificates两个属性
 + (instancetype)policyWithPinningMode:(AFSSLPinningMode)pinningMode withPinnedCertificates:(NSSet *)pinnedCertificates {
     AFSecurityPolicy *securityPolicy = [[self alloc] init];
     securityPolicy.SSLPinningMode = pinningMode;
@@ -246,6 +247,9 @@ static NSArray * AFPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
     //判断矛盾的条件
     //判断有域名，且允许自建证书，需要验证域名，
     //因为要验证域名，所以必须不能是后者两种：AFSSLPinningModeNone或者添加到项目里的证书为0个。
+    /*
+     self.allowInvalidCertificates==YES表示如果此处允许使用自建证书（服务器自己弄的CA证书，非官方），并且还想验证domain是否有效(self.validatesDomainName == YES)，也就是说你想验证自建证书的domain是否有效。那么你必须使用pinnedCertificates（就是在客户端保存服务器端颁发的证书拷贝）才可以。但是你的SSLPinningMode为AFSSLPinningModeNone，表示你不使用SSL pinning，只跟浏览器一样在系统的信任机构列表里验证服务端返回的证书。所以当然你的客户端上没有你导入的pinnedCertificates，同样表示你无法验证该自建证书。所以都返回NO。最终结论就是要使用服务器端自建证书，那么就得将对应的证书拷贝到iOS客户端，并使用AFSSLPinningMode或AFSSLPinningModePublicKey
+     */
     if (domain && self.allowInvalidCertificates && self.validatesDomainName && (self.SSLPinningMode == AFSSLPinningModeNone || [self.pinnedCertificates count] == 0)) {
         // https://developer.apple.com/library/mac/documentation/NetworkingInternet/Conceptual/NetworkingTopics/Articles/OverridingSSLChainValidationCorrectly.html
         //  According to the docs, you should only trust your provided certs for evaluation.
@@ -331,6 +335,7 @@ static NSArray * AFPublicKeyTrustChainForServerTrust(SecTrustRef serverTrust) {
                     }
                 }
             }
+            // trustedPublicKeyCount大于0说明服务器端中的某个证书和客户端绑定的证书公钥一致，认为服务器端是可信的
             return trustedPublicKeyCount > 0;
         }
     }
