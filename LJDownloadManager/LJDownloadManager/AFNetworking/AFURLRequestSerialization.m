@@ -413,7 +413,8 @@ forHTTPHeaderField:(NSString *)field
         }
     }
     
-    // 第四步：将传入的parameters进行编码，并添加到request中
+    // 第四步：将传入的parameters进行编码，并添加到request中，设置 HTTP 头部字段和查询参数
+    // 设置 HTTP 头部字段和查询参数
     mutableRequest = [[self requestBySerializingRequest:mutableRequest withParameters:parameters error:error] mutableCopy];
 
 	return mutableRequest;
@@ -621,7 +622,7 @@ forHTTPHeaderField:(NSString *)field
         if ([change[NSKeyValueChangeNewKey] isEqual:[NSNull null]]) {
             [self.mutableObservedChangedKeyPaths removeObject:keyPath];
         } else {
-            // 也就是当AFHTTPRequestSerializerObserverContext中的Value变化了（且变化后的新值部位NSNull,null）
+            // 也就是当AFHTTPRequestSerializerObserverContext中的Value变化了（且变化后的新值不为NSNull,null）
             // 就会响应observeValueForKeyPath这个函数从而mutableObservedChangedKeyPaths会添加这个keyPath
             // 现在的问题是 哪里会产生keypath的值变化了的事件？
             // 参考代码位置：MUTABLEOBSERVEDCHANGEDKEYPATHS

@@ -217,7 +217,8 @@ didCompleteWithError:(NSError *)error
     //错误处理
     if (error) {
         userInfo[AFNetworkingTaskDidCompleteErrorKey] = error;
-        //可以自己自定义完成组 和自定义完成queue,完成回调
+        // 可以自己自定义完成组 和自定义完成queue,完成回调
+        // 如果当前 manager 持有 completionGroup 或者 completionQueue 就使用它们。否则会创建一个 dispatch_group_t 并在主线程中调用 completionHandler 并发送通知(在主线程中)。
         dispatch_group_async(manager.completionGroup ?: url_session_manager_completion_group(), manager.completionQueue ?: dispatch_get_main_queue(), ^{
             if (self.completionHandler) {
                 self.completionHandler(task.response, responseObject, error);
@@ -228,6 +229,7 @@ didCompleteWithError:(NSError *)error
             });
         });
     } else {
+        // 如果在执行当前 task 时没有遇到错误，那么先对数据进行序列化，然后同样调用 block 并发送通知。
         //url_session_manager_processing_queue AF的并行队列
         dispatch_async(url_session_manager_processing_queue(), ^{
             NSError *serializationError = nil;
@@ -260,7 +262,7 @@ didCompleteWithError:(NSError *)error
 }
 
 #pragma mark - NSURLSessionDataDelegate
-
+// 收到数据时回调
 - (void)URLSession:(__unused NSURLSession *)session
           dataTask:(__unused NSURLSessionDataTask *)dataTask
     didReceiveData:(NSData *)data
@@ -355,7 +357,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
      WARNING: Trouble Ahead
      https://github.com/AFNetworking/AFNetworking/pull/2702
      */
-
+    // 首先用 NSClassFromString(@"NSURLSessionTask") 判断当前部署的 iOS 版本是否含有类 NSURLSessionTask
     if (NSClassFromString(@"NSURLSessionTask")) {
         /**
          iOS 7 and iOS 8 differ in NSURLSessionTask implementation, which makes the next bit of code a bit tricky.
@@ -496,6 +498,7 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
     }
 
     if (!configuration) {
+        // 1.初始化会话配置（NSURLSessionConfiguration），默认为 defaultSessionConfiguration
         configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     }
 
@@ -503,17 +506,17 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
 
     self.operationQueue = [[NSOperationQueue alloc] init];
     self.operationQueue.maxConcurrentOperationCount = 1;
-
+    // 2.初始化会话（session），并设置会话的代理以及代理队
     self.session = [NSURLSession sessionWithConfiguration:self.sessionConfiguration delegate:self delegateQueue:self.operationQueue];
+    // 3.初始化管理响应序列化（AFJSONResponseSerializer），安全认证（AFSecurityPolicy）以及监控网络状态（AFNetworkReachabilityManager）的实例
+    self.responseSerializer = [AFJSONResponseSerializer serializer];    // 负责序列化响应
 
-    self.responseSerializer = [AFJSONResponseSerializer serializer];
-
-    self.securityPolicy = [AFSecurityPolicy defaultPolicy];
+    self.securityPolicy = [AFSecurityPolicy defaultPolicy];     // 负责身份认证
 
 #if !TARGET_OS_WATCH
-    self.reachabilityManager = [AFNetworkReachabilityManager sharedManager];
+    self.reachabilityManager = [AFNetworkReachabilityManager sharedManager];    // 查看网络连接情况
 #endif
-
+    // 4.初始化保存 data task 的字典（mutableTaskDelegatesKeyedByTaskIdentifier
     self.mutableTaskDelegatesKeyedByTaskIdentifier = [[NSMutableDictionary alloc] init];
 
     self.lock = [[NSLock alloc] init];
@@ -586,11 +589,12 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
 {
     NSParameterAssert(task);
     NSParameterAssert(delegate);
-    //加锁保证字典线程安全
+    // 加锁保证字典线程安全
+    // 该方法使用 NSLock 来保证不同线程使用 mutableTaskDelegatesKeyedByTaskIdentifier 时，不会出现线程竞争的问题。
     [self.lock lock];
     // 将AF delegate放入以taskIdentifier标记的词典中（同一个NSURLSession中的taskIdentifier是唯一的）
     self.mutableTaskDelegatesKeyedByTaskIdentifier[@(task.taskIdentifier)] = delegate;
-    //添加task开始和暂停的通知
+    // 添加task开始和暂停的通知
     [self addNotificationObserverForTask:task];
     [self.lock unlock];
 }
@@ -747,9 +751,12 @@ static NSString * const AFNSURLSessionTaskDidSuspendNotification = @"com.alamofi
     //其实现应该是因为iOS 8.0以下版本中会并发地创建多个task对象，而同步有没有做好，导致taskIdentifiers 不唯一…这边做了一个串行处理
     __block NSURLSessionDataTask *dataTask = nil;
     url_session_manager_create_task_safely(^{
+        // 返回 NSURLSessionDataTask #3
         dataTask = [self.session dataTaskWithRequest:request];
     });
-
+    
+    // 返回一个 AFURLSessionManagerTaskDelegate 对象
+    // 将 completionHandler uploadProgressBlock 和 downloadProgressBlock 传入该对象并在相应事件发生时进行回调
     [self addDelegateForDataTask:dataTask uploadProgress:uploadProgressBlock downloadProgress:downloadProgressBlock completionHandler:completionHandler];
 
     return dataTask;

@@ -61,7 +61,7 @@ static BOOL AFErrorOrUnderlyingErrorHasCodeInDomain(NSError *error, NSInteger co
 
     return NO;
 }
-
+// 递归调用函数
 static id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingOptions readingOptions) {
     if ([JSONObject isKindOfClass:[NSArray class]]) {
         //生成一个数组，只需要JSONObject.count个
@@ -100,7 +100,7 @@ static id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     if (!self) {
         return nil;
     }
-
+    // 将 acceptableStatusCodes 设置为从 200 到 299 之间的状态码, 因为只有这些状态码表示获得了有效的响应
     self.acceptableStatusCodes = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(200, 100)];
     self.acceptableContentTypes = nil;
 
@@ -123,7 +123,7 @@ static id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
         //如果有接受数据类型，如果不匹配response，而且响应类型不为空，数据长度不为0
         if (self.acceptableContentTypes && ![self.acceptableContentTypes containsObject:[response MIMEType]] &&
             !([response MIMEType] == nil && [data length] == 0)) {
-            //进入If块说明解析数据肯定是失败的，这时候要把解析错误信息放到error里。
+            // ⚠️进入If块说明解析数据肯定是失败的，这时候要把解析错误信息放到error里。
             //如果数据长度大于0，而且有响应url
             if ([data length] > 0 && [response URL]) {
                 //错误信息字典，填充一些错误信息
@@ -142,7 +142,7 @@ static id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
             responseIsValid = NO;
         }
         //判断自己可接受的状态吗
-        //如果和response的状态码不匹配，则进入if块
+        // ⚠️如果和response的状态码不匹配，则进入if块
         if (self.acceptableStatusCodes && ![self.acceptableStatusCodes containsIndex:(NSUInteger)response.statusCode] && [response URL]) {
             //填写错误信息字典
             NSMutableDictionary *mutableUserInfo = [@{
@@ -261,6 +261,7 @@ static id AFJSONObjectByRemovingKeysWithNullValues(id JSONObject, NSJSONReadingO
     // 对于'head :ok'，Rails返回的是一个空格 (这是Safari上的一个bug)，并且这样的JSON格式不会被NSJSONSerialization解析。
     // See https://github.com/rails/rails/issues/1742
     // 如果是单个空格，就不解析
+    // 解决一个由只包含一个空格的响应引起的 bug
     BOOL isSpace = [data isEqualToData:[NSData dataWithBytes:" " length:1]];
     
     if (data.length == 0 || isSpace) {

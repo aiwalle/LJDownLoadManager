@@ -129,10 +129,10 @@ static void AFNetworkReachabilityReleaseCallback(const void *info) {
 
     return _sharedManager;
 }
-
+// 在初始化方法中，使用SCNetworkReachabilityCreateWithName 生成一个 SCNetworkReachabilityRef 的引用
 + (instancetype)managerForDomain:(NSString *)domain {
     SCNetworkReachabilityRef reachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, [domain UTF8String]);
-
+    // 调用 - [AFNetworkReachabilityManager initWithReachability:] 将生成的 SCNetworkReachabilityRef 引用传给 networkReachability
     AFNetworkReachabilityManager *manager = [[self alloc] initWithReachability:reachability];
     
     CFRelease(reachability);
@@ -140,8 +140,10 @@ static void AFNetworkReachabilityReleaseCallback(const void *info) {
     return manager;
 }
 
+// 使用 SCNetworkReachabilityCreateWithAddress生成一个 SCNetworkReachabilityRef 的引用
 + (instancetype)managerForAddress:(const void *)address {
     SCNetworkReachabilityRef reachability = SCNetworkReachabilityCreateWithAddress(kCFAllocatorDefault, (const struct sockaddr *)address);
+    // 调用 - [AFNetworkReachabilityManager initWithReachability:] 将生成的 SCNetworkReachabilityRef 引用传给 networkReachability
     AFNetworkReachabilityManager *manager = [[self alloc] initWithReachability:reachability];
 
     CFRelease(reachability);
@@ -213,9 +215,12 @@ static void AFNetworkReachabilityReleaseCallback(const void *info) {
     if (!self.networkReachability) {
         return;
     }
-
+    
+    // 创建一个在每次网络状态改变时的回调
     __weak __typeof(self)weakSelf = self;
     // 根据网络状态status来设置网络状态监听的回调函数callback
+    // 每次回调被调用时, (1)重新设置 networkReachabilityStatus 属性
+    //                (2)调用 networkReachabilityStatusBlock
     AFNetworkReachabilityStatusBlock callback = ^(AFNetworkReachabilityStatus status) {
         __strong __typeof(weakSelf)strongSelf = weakSelf;
 
@@ -266,6 +271,7 @@ static void AFNetworkReachabilityReleaseCallback(const void *info) {
     });
 }
 
+// 先调用 - stopMonitoring 方法，如果之前设置过对网络状态的监听，使用 SCNetworkReachabilityUnscheduleFromRunLoop 方法取消之前在 Main Runloop 中的监听
 - (void)stopMonitoring {
     if (!self.networkReachability) {
         return;
