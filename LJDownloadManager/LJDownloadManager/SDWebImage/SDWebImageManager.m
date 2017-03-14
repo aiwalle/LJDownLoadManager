@@ -107,15 +107,18 @@
                                     progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
                                    completed:(nullable SDInternalCompletionBlock)completedBlock {
     // Invoking this method without a completedBlock is pointless
+    // 如果没有设置completedBlock来调用这个方法是没有意义的
     NSAssert(completedBlock != nil, @"If you mean to prefetch the image, use -[SDWebImagePrefetcher prefetchURLs] instead");
 
     // Very common mistake is to send the URL using NSString object instead of NSURL. For some strange reason, Xcode won't
     // throw any warning for this type mismatch. Here we failsafe this error by allowing URLs to be passed as NSString.
+    // 有时候xcode不会警告这个类型错误（将NSSTring当做NSURL），所以这里做一下容错
     if ([url isKindOfClass:NSString.class]) {
         url = [NSURL URLWithString:(NSString *)url];
     }
 
     // Prevents app crashing on argument type error like sending NSNull instead of NSURL
+    // 阻止app由于类型错误的奔溃，像用NSNull代替NSURL
     if (![url isKindOfClass:NSURL.class]) {
         url = nil;
     }
@@ -135,6 +138,7 @@
     // 1.如果url的长度为0时候执行
     // 2.当前url在失败的URL列表中，且options 不为 SDWebImageRetryFailed   时候执行
     if (url.absoluteString.length == 0 || (!(options & SDWebImageRetryFailed) && isFailedUrl)) {
+        // 这里做的就是抛出错误,文件不存在
         [self callCompletionBlockForOperation:operation completion:completedBlock error:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorFileDoesNotExist userInfo:nil] url:url];
         return operation;
     }
@@ -144,8 +148,10 @@
         [self.runningOperations addObject:operation];
     }
     // ⚠️如果设置了缓存过滤器，过滤一下url
+    // LJMARK
     NSString *key = [self cacheKeyForURL:url];
     
+    // 这里设定了operation的缓存队列
     operation.cacheOperation = [self.imageCache queryCacheOperationForKey:key done:^(UIImage *cachedImage, NSData *cachedData, SDImageCacheType cacheType) {
         if (operation.isCancelled) {
             [self safelyRemoveOperationFromRunning:operation];
@@ -284,7 +290,7 @@
         }
     }
 }
-
+// 这里做的就是抛出错误
 - (void)callCompletionBlockForOperation:(nullable SDWebImageCombinedOperation*)operation
                              completion:(nullable SDInternalCompletionBlock)completionBlock
                                   error:(nullable NSError *)error
@@ -292,6 +298,7 @@
     [self callCompletionBlockForOperation:operation completion:completionBlock image:nil data:nil error:error cacheType:SDImageCacheTypeNone finished:YES url:url];
 }
 
+// 这里做的就是抛出错误
 - (void)callCompletionBlockForOperation:(nullable SDWebImageCombinedOperation*)operation
                              completion:(nullable SDInternalCompletionBlock)completionBlock
                                   image:(nullable UIImage *)image
@@ -314,11 +321,13 @@
 
 - (void)setCancelBlock:(nullable SDWebImageNoParamsBlock)cancelBlock {
     // check if the operation is already cancelled, then we just call the cancelBlock
+    // 如果该operation已经取消了，我们只是调用回调block
     if (self.isCancelled) {
         if (cancelBlock) {
             cancelBlock();
         }
         _cancelBlock = nil; // don't forget to nil the cancelBlock, otherwise we will get crashes
+        // 不要忘了设置cacelBlock为nil，否则可能会奔溃
     } else {
         _cancelBlock = [cancelBlock copy];
     }

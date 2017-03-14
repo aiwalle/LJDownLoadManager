@@ -77,6 +77,7 @@ static char TAG_ACTIVITY_SHOW;
                     // 标记设为需要布局
                     [sself sd_setNeedsLayout];
                 } else {
+                    // image已经尝试获取过了，但是没有从网络端获取到
                     // 如果options为SDWebImageDelayPlaceholder，当前视图设置为占位图片
                     // 标记设为需要布局
                     if ((options & SDWebImageDelayPlaceholder)) {
@@ -92,7 +93,7 @@ static char TAG_ACTIVITY_SHOW;
         }];
         [self sd_setImageLoadOperation:operation forKey:validOperationKey];
     } else {
-        // 如果url为空
+        // 如果url为空，抛出错误
         dispatch_main_async_safe(^{
             [self sd_removeActivityIndicator];
             if (completedBlock) {
