@@ -16,7 +16,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
      * By default, when a URL fail to be downloaded, the URL is blacklisted so the library won't keep trying.
      * This flag disable this blacklisting.
      * 默认情况下，当一个URL下载失败的时候，这个URL在黑名单，且这个库不会尝试再次下载
-     * 这个标记禁止加入黑名单(失败后重试)
+     * 默认情况下,如果一个url在下载的时候失败了,那么这个url会被加入黑名单并且library不会尝试再次下载,这个flag会阻止library把失败的url加入黑名单(简单来说如果选择了这个flag,那么即使某个url下载失败了,sdwebimage还是会尝试再次下载他.)
      */
     SDWebImageRetryFailed = 1 << 0,
 
@@ -24,7 +24,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
      * By default, image downloads are started during UI interactions, this flags disable this feature,
      * leading to delayed download on UIScrollView deceleration for instance.
      * UI交互期间下载
-     * 导致延迟下载在UIScrollView减速的时候
+     * 导致延迟下载在UIScrollView减速的时候，(也就是你滑动的时候scrollview不下载,你手从屏幕上移走,scrollview开始减速的时候才会开始下载图片)
      */
     SDWebImageLowPriority = 1 << 1,
 
@@ -37,7 +37,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
     /**
      * This flag enables progressive download, the image is displayed progressively during download as a browser would do.
      * By default, the image is only displayed once completely downloaded.
-     * 这个标志可以渐进式下载,显示的图像是逐步在下载
+     * 这个标志可以渐进式下载,显示的图像是逐步在下载(就像你用浏览器浏览网页的时候那种图片下载,一截一截的显示(待确认)
      */
     SDWebImageProgressiveDownload = 1 << 3,
 
@@ -186,7 +186,9 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
 @interface SDWebImageManager : NSObject
 
 @property (weak, nonatomic, nullable) id <SDWebImageManagerDelegate> delegate;
-
+/**
+ *如同上文所说,一个SDWebImageManager会绑定一个imageCache和一个下载器.
+ */
 @property (strong, nonatomic, readonly, nullable) SDImageCache *imageCache;
 @property (strong, nonatomic, readonly, nullable) SDWebImageDownloader *imageDownloader;
 
@@ -262,6 +264,7 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  
  * @return Returns an NSObject conforming to SDWebImageOperation. Should be an instance of SDWebImageDownloaderOperation
  *   返回一个遵循SDWebImageOperation的对象，应该是一个SDWebImageDownloaderOperation对象的实例
+ *   这个NSObject类是conforming一个协议这个协议叫做SDWebImageOperation,这个协议很简单,就是一个cancel掉operation的协议.
  */
 - (nullable id <SDWebImageOperation>)loadImageWithURL:(nullable NSURL *)url
                                               options:(SDWebImageOptions)options
@@ -310,6 +313,7 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  *
  *  @note the completion block is always executed on the main queue
  *  这个回调总会在主线程执行
+ *  如果检测到图片已经被缓存,那么执行回调block.这个block会永远执行在主线程.也就是你可以在这个回调block里更新ui.
  */
 - (void)diskImageExistsForURL:(nullable NSURL *)url
                    completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock;

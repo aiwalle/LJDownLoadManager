@@ -188,13 +188,14 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 }
 
 #pragma mark - Store Ops
-
+// 存储图片，存到内存和磁盘
 - (void)storeImage:(nullable UIImage *)image
             forKey:(nullable NSString *)key
         completion:(nullable SDWebImageNoParamsBlock)completionBlock {
     [self storeImage:image imageData:nil forKey:key toDisk:YES completion:completionBlock];
 }
 
+// 存储图片
 - (void)storeImage:(nullable UIImage *)image
             forKey:(nullable NSString *)key
             toDisk:(BOOL)toDisk

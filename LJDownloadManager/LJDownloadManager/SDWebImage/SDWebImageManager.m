@@ -44,6 +44,12 @@
     return [self initWithCache:cache downloader:downloader];
 }
 
+// 初始化方法.
+// 1.获得一个SDImageCache的单例.2.获取一个SDWebImageDownloader的单例.3.新建一个MutableSet来存储下载失败的url.
+// 4.新建一个用来存储下载operation的可变数组.
+// 为什么不用MutableArray储存下载失败的URL?
+// 因为NSSet类有一个特性,就是Hash.实际上NSSet是一个哈希表,哈希表比数组优秀的地方是什么呢?就是查找速度快.查找同样一个元素,哈希表只需要通过key
+// 即可取到,而数组至少需要遍历依次.因为SDWebImage里有关失败URL的业务需求是,一个失败的URL只需要储存一次.这样的话Set自然比Array更合适.
 - (nonnull instancetype)initWithCache:(nonnull SDImageCache *)cache downloader:(nonnull SDWebImageDownloader *)downloader {
     if ((self = [super init])) {
         _imageCache = cache;
@@ -54,6 +60,9 @@
     return self;
 }
 
+// 利用Image的URL生成一个缓存时需要的key.
+// 这里有两种情况,第一种是如果检测到cacheKeyFilter不为空时,利用cacheKeyFilter来处理URL生成一个key.
+// 如果为空,那么直接返回URL的string内容,当做key.
 - (nullable NSString *)cacheKeyForURL:(nullable NSURL *)url {
     if (!url) {
         return @"";
@@ -66,6 +75,9 @@
     }
 }
 
+// 检测一张图片是否已被缓存.
+// 首先检测内存缓存是否存在这张图片,如果已有,直接返回yes.
+// 如果内存缓存里没有这张图片,那么调用diskImageExistsWithKey这个方法去硬盘缓存里找
 - (void)cachedImageExistsForURL:(nullable NSURL *)url
                      completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock {
     NSString *key = [self cacheKeyForURL:url];
@@ -90,6 +102,10 @@
     }];
 }
 
+// 首先生成一个用来cache 住Image的key(利用key的url生成)
+// 然后检测内存缓存里是否已经有这张图片
+// 如果已经被缓存,那么再主线程里回调block
+// 如果没有检测到,那么调用diskImageExistsWithKey,这个方法会在异步线程里,将图片存到硬盘,当然在存图之前也会检测是否已在硬盘缓存图片
 - (void)diskImageExistsForURL:(nullable NSURL *)url
                    completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock {
     NSString *key = [self cacheKeyForURL:url];
@@ -102,6 +118,7 @@
     }];
 }
 
+// 通过url建立一个operation用来下载图片.
 - (id <SDWebImageOperation>)loadImageWithURL:(nullable NSURL *)url
                                      options:(SDWebImageOptions)options
                                     progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
@@ -127,7 +144,8 @@
     __block SDWebImageCombinedOperation *operation = [SDWebImageCombinedOperation new];
     __weak SDWebImageCombinedOperation *weakOperation = operation;
 
-    // 判断当前的url是否已经存在失败URLS数组中，如果包括，isFailedUrl为YES
+    // 创建一个互斥锁防止现在有别的线程修改failedURLs.
+    // 判断这个url是否是fail过的.如果url failed过的那么isFailedUrl就是true
     BOOL isFailedUrl = NO;
     if (url) {
         @synchronized (self.failedURLs) {
@@ -143,7 +161,7 @@
         return operation;
     }
 
-    // 将当前的operation加入到runningOperations中
+    // 创建一个互斥锁防止现在有别的线程修改runningOperations.
     @synchronized (self.runningOperations) {
         [self.runningOperations addObject:operation];
     }
@@ -153,6 +171,7 @@
     NSString *key = [self cacheKeyForURL:url];
     
     // 这里设定了operation的缓存队列，通过上面获取到的cacheKey来查询缓存
+    // cacheOperation应该是一个用来下载图片并且缓存的operation
     operation.cacheOperation = [self.imageCache queryCacheOperationForKey:key done:^(UIImage *cachedImage, NSData *cachedData, SDImageCacheType cacheType) {
         // 如果对当前operation进行了取消操作，在SDWebImageManager的runningOperations移除operation
         if (operation.isCancelled) {
@@ -196,6 +215,7 @@
             }
             
             // 创建一个下载的TOKEN
+            // 调用imageDownloader去下载image
             SDWebImageDownloadToken *subOperationToken = [self.imageDownloader downloadImageWithURL:url options:downloaderOptions progress:progressBlock completed:^(UIImage *downloadedImage, NSData *downloadedData, NSError *error, BOOL finished) {
                 __strong __typeof(weakOperation) strongOperation = weakOperation;
                 if (!strongOperation || strongOperation.isCancelled) {
@@ -277,6 +297,7 @@
     return operation;
 }
 
+//
 - (void)saveImageToCache:(nullable UIImage *)image forURL:(nullable NSURL *)url {
     if (image && url) {
         NSString *key = [self cacheKeyForURL:url];
@@ -284,6 +305,7 @@
     }
 }
 
+// cancel掉所有正在执行的operation
 - (void)cancelAll {
     @synchronized (self.runningOperations) {
         NSArray<SDWebImageCombinedOperation *> *copiedOperations = [self.runningOperations copy];
@@ -292,6 +314,7 @@
     }
 }
 
+// 判断是否有正在运行的operation
 - (BOOL)isRunning {
     BOOL isRunning = NO;
     @synchronized (self.runningOperations) {
