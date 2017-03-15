@@ -13,14 +13,17 @@
 typedef NS_ENUM(NSInteger, SDImageCacheType) {
     /**
      * The image wasn't available the SDWebImage caches, but was downloaded from the web.
+     * 不用缓存，直接从网上下载
      */
     SDImageCacheTypeNone,
     /**
      * The image was obtained from the disk cache.
+     * 从磁盘获得
      */
     SDImageCacheTypeDisk,
     /**
      * The image was obtained from the memory cache.
+     * 从内存获得
      */
     SDImageCacheTypeMemory
 };
@@ -177,32 +180,37 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  * Operation that queries the cache asynchronously and call the completion when done.
- *
+ * Operation，异步的查询缓存，查询完毕后调用回调的operation
  * @param key       The unique key used to store the wanted image
+ *                  唯一的key用来存储所要的图像
  * @param doneBlock The completion block. Will not get called if the operation is cancelled
- *
+ *                  完成的回调，如果operation取消的话将不会调用
  * @return a NSOperation instance containing the cache op
+ *                  返回一个NSOperation实例，包含对应的缓存操作
  */
 - (nullable NSOperation *)queryCacheOperationForKey:(nullable NSString *)key done:(nullable SDCacheQueryCompletedBlock)doneBlock;
 
 /**
  * Query the memory cache synchronously.
- *
+ * 同步的查询内存缓存
  * @param key The unique key used to store the image
+ * 唯一的key用来存储所要的图像
  */
 - (nullable UIImage *)imageFromMemoryCacheForKey:(nullable NSString *)key;
 
 /**
  * Query the disk cache synchronously.
- *
+ * 同步的查询磁盘缓存
  * @param key The unique key used to store the image
+ * 唯一的key用来存储所要的图像
  */
 - (nullable UIImage *)imageFromDiskCacheForKey:(nullable NSString *)key;
 
 /**
  * Query the cache (memory and or disk) synchronously after checking the memory cache.
- *
+ * 在检查完内存缓存以后，同步的查询内存和磁盘缓存
  * @param key The unique key used to store the image
+ * 唯一的key用来存储所要的图像
  */
 - (nullable UIImage *)imageFromCacheForKey:(nullable NSString *)key;
 
@@ -210,18 +218,23 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  * Remove the image from memory and disk cache asynchronously
- *
+ * 异步的从内存和磁盘缓存中移除图像
  * @param key             The unique image cache key
+ * 唯一的图片缓存key
  * @param completion      A block that should be executed after the image has been removed (optional)
+ * 在对应的图片被移除后执行的回调（可选的）
  */
 - (void)removeImageForKey:(nullable NSString *)key withCompletion:(nullable SDWebImageNoParamsBlock)completion;
 
 /**
  * Remove the image from memory and optionally disk cache asynchronously
- *
+ * 异步的从内存中移除图像，从磁盘中移除是可选的
  * @param key             The unique image cache key
+ * 唯一的图像缓存key
  * @param fromDisk        Also remove cache entry from disk if YES
+ * 如果是YES，那么也从磁盘中移除
  * @param completion      A block that should be executed after the image has been removed (optional)
+ * 在对应的图片被移除后执行的回调（可选的）
  */
 - (void)removeImageForKey:(nullable NSString *)key fromDisk:(BOOL)fromDisk withCompletion:(nullable SDWebImageNoParamsBlock)completion;
 
@@ -229,18 +242,23 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  * Clear all memory cached images
+ * 清楚所有的内存缓存图像
  */
 - (void)clearMemory;
 
 /**
  * Async clear all disk cached images. Non-blocking method - returns immediately.
  * @param completion    A block that should be executed after cache expiration completes (optional)
+ * 异步的清楚所有的磁盘缓存。阻塞方法 - 立即返回。
+ * 缓存到期后执行的回调(可选)
  */
 - (void)clearDiskOnCompletion:(nullable SDWebImageNoParamsBlock)completion;
 
 /**
  * Async remove all expired cached image from disk. Non-blocking method - returns immediately.
  * @param completionBlock A block that should be executed after cache expiration completes (optional)
+ * 从磁盘中异步的移除所有国企的缓存图片。阻塞方法 - 立即返回。
+ * 缓存到期后执行的回调(可选)
  */
 - (void)deleteOldFilesWithCompletionBlock:(nullable SDWebImageNoParamsBlock)completionBlock;
 
@@ -248,16 +266,19 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  * Get the size used by the disk cache
+ * 获取到磁盘缓存的大小
  */
 - (NSUInteger)getSize;
 
 /**
  * Get the number of images in the disk cache
+ * 获得磁盘缓存的图像数
  */
 - (NSUInteger)getDiskCount;
 
 /**
  * Asynchronously calculate the disk cache's size.
+ * 异步的计算磁盘缓存的大小
  */
 - (void)calculateSizeWithCompletionBlock:(nullable SDWebImageCalculateSizeBlock)completionBlock;
 
@@ -265,20 +286,23 @@ typedef void(^SDWebImageCalculateSizeBlock)(NSUInteger fileCount, NSUInteger tot
 
 /**
  *  Get the cache path for a certain key (needs the cache path root folder)
- *
+ *  通过一个明确的key（需要对应的缓存路径根文件）
  *  @param key  the key (can be obtained from url using cacheKeyForURL)
+ *  能够使用cacheKeyForURL从中获得的url
  *  @param path the cache path root folder
- *
+ *  缓存对应的根目录文件
  *  @return the cache path
+ *  返回缓存路径
  */
 - (nullable NSString *)cachePathForKey:(nullable NSString *)key inPath:(nonnull NSString *)path;
 
 /**
  *  Get the default cache path for a certain key
- *
+ *  通过一个确定的key获得默认的缓存地址
  *  @param key the key (can be obtained from url using cacheKeyForURL)
- *
+ *  能够使用cacheKeyForURL从中获得的url
  *  @return the default cache path
+ *  返回默认的缓存路径
  */
 - (nullable NSString *)defaultCachePathForKey:(nullable NSString *)key;
 

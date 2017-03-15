@@ -82,6 +82,7 @@ typedef NSMutableDictionary<NSString *, id> SDCallbacksDictionary;
     SDDispatchQueueRelease(_barrierQueue);
 }
 
+// 添加处理程序进度和完成的回调。 返回可传递到-cancel：以取消此回调集合的令牌。
 - (nullable id)addHandlersForProgress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
                             completed:(nullable SDWebImageDownloaderCompletedBlock)completedBlock {
     SDCallbacksDictionary *callbacks = [NSMutableDictionary new];

@@ -22,9 +22,11 @@
 @property (strong, nonatomic, nonnull) NSMutableDictionary<NSURL *, SDWebImageDownloaderOperation *> *URLOperations;
 @property (strong, nonatomic, nullable) SDHTTPHeadersMutableDictionary *HTTPHeaders;
 // This queue is used to serialize the handling of the network responses of all the download operation in a single queue
+// 此队列用于在单个队列中串行处理所有下载操作的网络响应
 @property (SDDispatchQueueSetterSementics, nonatomic, nullable) dispatch_queue_t barrierQueue;
 
 // The session in which data tasks will run
+// 将运行数据任务的会话
 @property (strong, nonatomic) NSURLSession *session;
 
 @end
@@ -81,6 +83,7 @@
 #else
         _HTTPHeaders = [@{@"Accept": @"image/*;q=0.8"} mutableCopy];
 #endif
+        // _barrierQueue为并发队列
         _barrierQueue = dispatch_queue_create("com.hackemist.SDWebImageDownloaderBarrierQueue", DISPATCH_QUEUE_CONCURRENT);
         _downloadTimeout = 15.0;
 
@@ -144,7 +147,8 @@
                                                   progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
                                                  completed:(nullable SDWebImageDownloaderCompletedBlock)completedBlock {
     __weak SDWebImageDownloader *wself = self;
-
+    
+    // 这里返回一个继承自NSOperation的SDWebImageDownloaderOperation对象
     return [self addProgressCallback:progressBlock completedBlock:completedBlock forURL:url createCallback:^SDWebImageDownloaderOperation *{
         __strong __typeof (wself) sself = wself;
         NSTimeInterval timeoutInterval = sself.downloadTimeout;
@@ -153,6 +157,8 @@
         }
 
         // In order to prevent from potential duplicate caching (NSURLCache + SDImageCache) we disable the cache for image requests if told otherwise
+        // 为了防止潜在的重复缓存（NSURLCache + SDImageCache），我们禁用图像请求的缓存，如果告诉否则
+        // 指定应从源代码加载URL加载的数据。 不应使用现有缓存数据来满足网址加载请求。
         NSURLRequestCachePolicy cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
         if (options & SDWebImageDownloaderUseNSURLCache) {
             if (options & SDWebImageDownloaderIgnoreCachedResponse) {
@@ -162,6 +168,7 @@
             }
         }
         
+        // 生成一个request对象
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:cachePolicy timeoutInterval:timeoutInterval];
         
         request.HTTPShouldHandleCookies = (options & SDWebImageDownloaderHandleCookies);
@@ -172,6 +179,7 @@
         else {
             request.allHTTPHeaderFields = sself.HTTPHeaders;
         }
+        // 这里生成了一个自定义NSOperation对象
         SDWebImageDownloaderOperation *operation = [[sself.operationClass alloc] initWithRequest:request inSession:sself.session options:options];
         operation.shouldDecompressImages = sself.shouldDecompressImages;
         
@@ -190,6 +198,7 @@
         [sself.downloadQueue addOperation:operation];
         if (sself.executionOrder == SDWebImageDownloaderLIFOExecutionOrder) {
             // Emulate LIFO execution order by systematically adding new operations as last operation's dependency
+            // 通过系统地添加新操作作为上一个操作的依赖来模拟LIFO执行顺序
             [sself.lastAddedOperation addDependency:operation];
             sself.lastAddedOperation = operation;
         }
@@ -213,6 +222,7 @@
                                                    forURL:(nullable NSURL *)url
                                            createCallback:(SDWebImageDownloaderOperation *(^)())createCallback {
     // The URL will be used as the key to the callbacks dictionary so it cannot be nil. If it is nil immediately call the completed block with no image or data.
+    // 这个URL将被用到作为key在回调字典中，不能为nil。如果为nil，直接返回无图片无数据在完成的回调里
     if (url == nil) {
         if (completedBlock != nil) {
             completedBlock(nil, nil, nil, NO);
@@ -225,11 +235,13 @@
     dispatch_barrier_sync(self.barrierQueue, ^{
         SDWebImageDownloaderOperation *operation = self.URLOperations[url];
         if (!operation) {
+            // 如果没有operation,调用回调来产生实例
             operation = createCallback();
             self.URLOperations[url] = operation;
 
             __weak SDWebImageDownloaderOperation *woperation = operation;
             operation.completionBlock = ^{
+                // SDWebImageDownloaderOperation结束对应的回调
               SDWebImageDownloaderOperation *soperation = woperation;
               if (!soperation) return;
               if (self.URLOperations[url] == soperation) {

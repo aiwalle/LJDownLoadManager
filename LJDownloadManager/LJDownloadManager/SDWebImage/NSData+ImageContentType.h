@@ -27,6 +27,7 @@ typedef NS_ENUM(NSInteger, SDImageFormat) {
  *  @param data the input image data
  *
  *  @return the image format as `SDImageFormat` (enum)
+ *  通过data对象的首字母编码来判断图片的类型
  */
 + (SDImageFormat)sd_imageFormatForImageData:(nullable NSData *)data;
 

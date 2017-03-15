@@ -58,7 +58,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
     /**
      * In iOS 4+, continue the download of the image if the app goes to background. This is achieved by asking the system for
      * extra time in background to let the request finish. If the background task expires the operation will be cancelled.
-     * 在iOS4以上，如果app进入后台，也报错下载图像，这个需要取得用户权限
+     * 在iOS4以上，如果app进入后台，也保持下载图像，这个需要取得用户权限
      * 如果后台任务过期，操作将被取消
      */
     SDWebImageContinueInBackground = 1 << 5,
@@ -96,7 +96,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
      * We usually don't call transformDownloadedImage delegate method on animated images,
      * as most transformation code would mangle it.
      * Use this flag to transform them anyway.
-     * 我们通常不调用transformDownloadedImage代理方法在动画图像上，大多数情况下会对图像进行损坏
+     * 我们通常不调用transformDownloadedImage代理方法在动画图像上，大多数情况下会对图像进行耗损
      * 无论什么情况下都使用
      */
     SDWebImageTransformAnimatedImage = 1 << 10,
@@ -134,23 +134,26 @@ typedef NSString * _Nullable (^SDWebImageCacheKeyFilterBlock)(NSURL * _Nullable 
 
 /**
  * Controls which image should be downloaded when the image is not found in the cache.
- *
+ * 当图像没有在内存中找到的时候，控制是否下载图像
  * @param imageManager The current `SDWebImageManager`
  * @param imageURL     The url of the image to be downloaded
  *
  * @return Return NO to prevent the downloading of the image on cache misses. If not implemented, YES is implied.
+ * 如果设置为NO,内存中没有找到也不会去下载图像，如果没有实现这个方法，默认是YES
  */
 - (BOOL)imageManager:(nonnull SDWebImageManager *)imageManager shouldDownloadImageForURL:(nullable NSURL *)imageURL;
 
 /**
  * Allows to transform the image immediately after it has been downloaded and just before to cache it on disk and memory.
  * NOTE: This method is called from a global queue in order to not to block the main thread.
- *
+ * 允许在图像立即下载之后立即对其进行转换，然后将其缓存到磁盘和内存中
+ * 这个方法是在一个全局队列中执行，为了不阻塞主线程
  * @param imageManager The current `SDWebImageManager`
  * @param image        The image to transform
  * @param imageURL     The url of the image to transform
  *
  * @return The transformed image object.
+ * 返回的是被转换的图像对象
  */
 - (nullable UIImage *)imageManager:(nonnull SDWebImageManager *)imageManager transformDownloadedImage:(nullable UIImage *)image withURL:(nullable NSURL *)imageURL;
 
@@ -162,6 +165,8 @@ typedef NSString * _Nullable (^SDWebImageCacheKeyFilterBlock)(NSURL * _Nullable 
  * You can use this class directly to benefit from web image downloading with caching in another context than
  * a UIView.
  *
+ * SDWebImageManager是在UIImageView+WebCache中的一个分类
+ * 它将异步下载器（SDWebImageDownloader）与图像缓存存储（SDImageCache）绑定在一起。 您可以直接使用这个类从在UIView之外的另一个上下文中使用缓存获得Web图像下载。
  * Here is a simple example of how to use SDWebImageManager:
  *
  * @code
@@ -205,7 +210,7 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
 
 /**
  * Returns global SDWebImageManager instance.
- *
+ * 返回全局SDWebImageManager实例对象
  * @return SDWebImageManager shared instance
  */
 + (nonnull instancetype)sharedManager;
@@ -213,33 +218,50 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
 /**
  * Allows to specify instance of cache and image downloader used with image manager.
  * @return new instance of `SDWebImageManager` with specified cache and downloader.
+ * 允许指定实例缓存和用于图像管理者的图像下载器
+ * 返回通过指定缓存和下载器创建的新的SDWebImageManager
  */
 - (nonnull instancetype)initWithCache:(nonnull SDImageCache *)cache downloader:(nonnull SDWebImageDownloader *)downloader NS_DESIGNATED_INITIALIZER;
 
 /**
  * Downloads the image at the given URL if not present in cache or return the cached version otherwise.
- *
+ * 如果不存在于缓存中，请下载给定URL的图像，否则返回缓存的版本。
  * @param url            The URL to the image
+ * 图像的url
  * @param options        A mask to specify options to use for this request
+ * 指定用于此请求的选项的掩码
  * @param progressBlock  A block called while image is downloading
  *                       @note the progress block is executed on a background queue
+ * 当图像下载中时调用的block
+ * 这个进程的回调是在一个后台队列执行
  * @param completedBlock A block called when operation has been completed.
- *
+ * 当操作完成的回调
  *   This parameter is required.
- * 
+ 
+ *   这个参数是必须的
+ 
  *   This block has no return value and takes the requested UIImage as first parameter and the NSData representation as second parameter.
  *   In case of error the image parameter is nil and the third parameter may contain an NSError.
- *
+ 
+ *   这个回调无返回值，把请求到的图像作为第一个参数，将NSData表示作为第二个参数。
+ *   为了防止图像的参数为空导致的错误，这里的第三个参数包含一个NSError对象
+ 
  *   The forth parameter is an `SDImageCacheType` enum indicating if the image was retrieved from the local cache
  *   or from the memory cache or from the network.
- *
+
+ *   第四个参数是一个SDImageCacheType枚举值，图像是从本地缓存还是内存缓存或者是从网络上获得
+ 
  *   The fith parameter is set to NO when the SDWebImageProgressiveDownload option is used and the image is
  *   downloading. This block is thus called repeatedly with a partial image. When image is fully downloaded, the
  *   block is called a last time with the full image and the last parameter set to YES.
- *
+ 
+ *   当使用SDWebImageProgressiveDownload，且图像正在下载的时候，这个值是NO.当呈现部分图像的时候会多次调用这个回调，当图像完全下载完毕以后，这个回调会最后一次调用，返回全部的图像，这个参数最后被设定为YES
+ 
  *   The last parameter is the original image URL
- *
+ *   最后一个参数是原始的图像url
+ 
  * @return Returns an NSObject conforming to SDWebImageOperation. Should be an instance of SDWebImageDownloaderOperation
+ *   返回一个遵循SDWebImageOperation的对象，应该是一个SDWebImageDownloaderOperation对象的实例
  */
 - (nullable id <SDWebImageOperation>)loadImageWithURL:(nullable NSURL *)url
                                               options:(SDWebImageOptions)options
@@ -251,39 +273,43 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  *
  * @param image The image to cache
  * @param url   The URL to the image
- *
+ * 通过给定的URL存储图像到缓存
  */
 
 - (void)saveImageToCache:(nullable UIImage *)image forURL:(nullable NSURL *)url;
 
 /**
  * Cancel all current operations
+ * 取消所有的当前operation操作
  */
 - (void)cancelAll;
 
 /**
  * Check one or more operations running
+ * 检查一个或多个operation是否允许
  */
 - (BOOL)isRunning;
 
 /**
  *  Async check if image has already been cached
- *
+ *  异步检查如果图像已经被缓存
  *  @param url              image url
  *  @param completionBlock  the block to be executed when the check is finished
- *  
+ *  当检查结束时调用的回调
  *  @note the completion block is always executed on the main queue
+ *  这个回调总会在主线程执行
  */
 - (void)cachedImageExistsForURL:(nullable NSURL *)url
                      completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock;
 
 /**
  *  Async check if image has already been cached on disk only
- *
+ *  异步检查如果图像已经仅仅被缓存到磁盘
  *  @param url              image url
  *  @param completionBlock  the block to be executed when the check is finished
  *
  *  @note the completion block is always executed on the main queue
+ *  这个回调总会在主线程执行
  */
 - (void)diskImageExistsForURL:(nullable NSURL *)url
                    completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock;
@@ -291,6 +317,7 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
 
 /**
  *Return the cache key for a given URL
+ * 通过给定的URL返回缓存的key
  */
 - (nullable NSString *)cacheKeyForURL:(nullable NSURL *)url;
 

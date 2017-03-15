@@ -155,20 +155,24 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     }
 }
 
+// 根据对应的url来生成缓存文件名2
 - (nullable NSString *)cachePathForKey:(nullable NSString *)key inPath:(nonnull NSString *)path {
     NSString *filename = [self cachedFileNameForKey:key];
     return [path stringByAppendingPathComponent:filename];
 }
 
+// 根据对应的url来生成缓存文件名1
 - (nullable NSString *)defaultCachePathForKey:(nullable NSString *)key {
     return [self cachePathForKey:key inPath:self.diskCachePath];
 }
 
+// 根据对应的url来生成缓存文件名3
 - (nullable NSString *)cachedFileNameForKey:(nullable NSString *)key {
     const char *str = key.UTF8String;
     if (str == NULL) {
         str = "";
     }
+    // 通过md5来对图片的url进行加密，生成对应的磁盘文件的名称
     unsigned char r[CC_MD5_DIGEST_LENGTH];
     CC_MD5(str, (CC_LONG)strlen(str), r);
     NSString *filename = [NSString stringWithFormat:@"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%@",
@@ -198,6 +202,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     [self storeImage:image imageData:nil forKey:key toDisk:toDisk completion:completionBlock];
 }
 
+// 使用一个给定的key异步存储一个图像到内存和磁盘缓存
 - (void)storeImage:(nullable UIImage *)image
          imageData:(nullable NSData *)imageData
             forKey:(nullable NSString *)key
@@ -210,6 +215,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
         return;
     }
     // if memory cache is enabled
+    // 如果内存缓存可用
     if (self.config.shouldCacheImagesInMemory) {
         NSUInteger cost = SDCacheCostForImage(image);
         [self.memCache setObject:image forKey:key cost:cost];
@@ -308,6 +314,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     return image;
 }
 
+// 根据对应的key来获取到对应的图像磁盘数据
 - (nullable NSData *)diskImageDataBySearchingAllPathsForKey:(nullable NSString *)key {
     NSString *defaultPath = [self defaultCachePathForKey:key];
     NSData *data = [NSData dataWithContentsOfFile:defaultPath];
@@ -317,11 +324,13 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 
     // fallback because of https://github.com/rs/SDWebImage/pull/976 that added the extension to the disk file name
     // checking the key with and without the extension
+    // 无论是对应key返回的磁盘文件有没有拓展名，我们这里都再次检查一下
     data = [NSData dataWithContentsOfFile:defaultPath.stringByDeletingPathExtension];
     if (data) {
         return data;
     }
-
+    
+    // LJMARK:这里是对应的一些只读文件的操作
     NSArray<NSString *> *customPaths = [self.customPaths copy];
     for (NSString *path in customPaths) {
         NSString *filePath = [self cachePathForKey:key inPath:path];
@@ -332,6 +341,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 
         // fallback because of https://github.com/rs/SDWebImage/pull/976 that added the extension to the disk file name
         // checking the key with and without the extension
+        // 无论是对应key返回的磁盘文件有没有拓展名，我们这里都再次检查一下
         imageData = [NSData dataWithContentsOfFile:filePath.stringByDeletingPathExtension];
         if (imageData) {
             return imageData;
@@ -361,6 +371,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 }
 
 - (nullable NSOperation *)queryCacheOperationForKey:(nullable NSString *)key done:(nullable SDCacheQueryCompletedBlock)doneBlock {
+    // 如果对应的key为nil，直接执行回调函数
     if (!key) {
         if (doneBlock) {
             doneBlock(nil, nil, SDImageCacheTypeNone);
@@ -369,10 +380,12 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     }
 
     // First check the in-memory cache...
+    // 检查内存中key对应的缓存，返回图像
     UIImage *image = [self imageFromMemoryCacheForKey:key];
     if (image) {
         NSData *diskData = nil;
         if ([image isGIF]) {
+            // 如果是GIF图像，
             diskData = [self diskImageDataBySearchingAllPathsForKey:key];
         }
         if (doneBlock) {
@@ -380,7 +393,9 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
         }
         return nil;
     }
-
+    
+    // 内存中没有对应的缓存，执行下面的代码
+    // LJMARK:这里的operation有点莫名其妙
     NSOperation *operation = [NSOperation new];
     dispatch_async(self.ioQueue, ^{
         if (operation.isCancelled) {
@@ -389,13 +404,14 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
         }
 
         @autoreleasepool {
+            // 搜索磁盘缓存，将磁盘缓存加入内存缓存
             NSData *diskData = [self diskImageDataBySearchingAllPathsForKey:key];
             UIImage *diskImage = [self diskImageForKey:key];
             if (diskImage && self.config.shouldCacheImagesInMemory) {
                 NSUInteger cost = SDCacheCostForImage(diskImage);
                 [self.memCache setObject:diskImage forKey:key cost:cost];
             }
-
+            // 在主线程执行对应的回调，这里的缓存类型是磁盘缓存
             if (doneBlock) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     doneBlock(diskImage, diskData, SDImageCacheTypeDisk);
