@@ -148,7 +148,7 @@
                                                  completed:(nullable SDWebImageDownloaderCompletedBlock)completedBlock {
     __weak SDWebImageDownloader *wself = self;
     
-    // 这里返回一个继承自NSOperation的SDWebImageDownloaderOperation对象
+    // 这里返回一个SDWebImageDownloadToken对象
     return [self addProgressCallback:progressBlock completedBlock:completedBlock forURL:url createCallback:^SDWebImageDownloaderOperation *{
         __strong __typeof (wself) sself = wself;
         NSTimeInterval timeoutInterval = sself.downloadTimeout;

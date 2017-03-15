@@ -11,9 +11,11 @@
 #import "NSImage+WebCache.h"
 
 @interface SDWebImageCombinedOperation : NSObject <SDWebImageOperation>
-
+// 注意SDWebImageCombinedOperation遵循SDWebImageOperation，所以实现了cancel方法
 @property (assign, nonatomic, getter = isCancelled) BOOL cancelled;
 @property (copy, nonatomic, nullable) SDWebImageNoParamsBlock cancelBlock;
+// 根据cacheType获取到image，这里虽然名字用的是cache，但是如果cache没有获取到图片
+// 还是要把image下载下来的。此处只是把通过cache获取image和通过download获取image封装起来
 @property (strong, nonatomic, nullable) NSOperation *cacheOperation;
 
 @end

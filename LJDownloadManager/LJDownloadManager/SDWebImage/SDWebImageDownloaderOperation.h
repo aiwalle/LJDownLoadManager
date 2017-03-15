@@ -19,6 +19,7 @@ extern NSString * _Nonnull const SDWebImageDownloadFinishNotification;
 
 /**
  Describes a downloader operation. If one wants to use a custom downloader op, it needs to inherit from `NSOperation` and conform to this protocol
+ 描述了一个下载的operation，如果想要使用一个自定义的下载operation，需要继承NSOperation，且遵循这个协议
  */
 @protocol SDWebImageDownloaderOperationInterface<NSObject>
 
