@@ -147,16 +147,20 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     SDDispatchQueueRelease(_ioQueue);
 }
 
+// 先检查当前队列是否为io队列
 - (void)checkIfQueueIsIOQueue {
+    // 获取当前队列的队列名称
     const char *currentQueueLabel = dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL);
+    // 获取io队列的名称
     const char *ioQueueLabel = dispatch_queue_get_label(self.ioQueue);
+    // 比较这两个队列名，不一样的话打印
     if (strcmp(currentQueueLabel, ioQueueLabel) != 0) {
         NSLog(@"This method should be called from the ioQueue");
     }
 }
 
 #pragma mark - Cache paths
-
+// 添加只读路径
 - (void)addReadOnlyCachePath:(nonnull NSString *)path {
     if (!self.customPaths) {
         self.customPaths = [NSMutableArray new];
@@ -198,6 +202,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     return filename;
 }
 
+// 创建磁盘路径
 - (nullable NSString *)makeDiskCachePath:(nonnull NSString*)fullNamespace {
     // 获取当前用户应用下的Caches目录
     // 返回了一个包含用户Caches目录作为第一元素的数组，所以底下用的是paths[0]
@@ -240,7 +245,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
         NSUInteger cost = SDCacheCostForImage(image);
         [self.memCache setObject:image forKey:key cost:cost];
     }
-    
+    // 存到磁盘
     if (toDisk) {
         dispatch_async(self.ioQueue, ^{
             NSData *data = imageData;
@@ -269,7 +274,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     if (!imageData || !key) {
         return;
     }
-    
+    // 先检查当前队列是否为io队列
     [self checkIfQueueIsIOQueue];
     // 首先判断disk cache的文件路径是否存在，不存在的话就创建一个
     // disk cache的文件路径是存储在_diskCachePath中的
@@ -297,9 +302,10 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 }
 
 #pragma mark - Query and Retrieve Ops
-
+// 根据key搜索该图片是否存在于磁盘路径
 - (void)diskImageExistsWithKey:(nullable NSString *)key completion:(nullable SDWebImageCheckCacheCompletionBlock)completionBlock {
     dispatch_async(_ioQueue, ^{
+        
         BOOL exists = [_fileManager fileExistsAtPath:[self defaultCachePathForKey:key]];
 
         // fallback because of https://github.com/rs/SDWebImage/pull/976 that added the extension to the disk file name
@@ -425,7 +431,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     }
     
     // 内存中没有对应的缓存，执行下面的代码
-    // LJMARK:这里的operation有点莫名其妙
+    // LJMARK:这里的operation有点莫名其妙，干啥用的
     NSOperation *operation = [NSOperation new];
     dispatch_async(self.ioQueue, ^{
         if (operation.isCancelled) {

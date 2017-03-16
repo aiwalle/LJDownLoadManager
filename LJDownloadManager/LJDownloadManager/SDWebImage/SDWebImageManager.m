@@ -69,10 +69,11 @@
     if (!url) {
         return @"";
     }
-
+    // ⚠️如果设置了缓存key的过滤器，过滤一下url
     if (self.cacheKeyFilter) {
         return self.cacheKeyFilter(url);
     } else {
+        // 否则直接使用url
         return url.absoluteString;
     }
 }
@@ -141,8 +142,7 @@
     if (![url isKindOfClass:NSURL.class]) {
         url = nil;
     }
-    
-    // LJMARK：这里定义的两个operation对象的作用？
+
     __block SDWebImageCombinedOperation *operation = [SDWebImageCombinedOperation new];
     __weak SDWebImageCombinedOperation *weakOperation = operation;
 
@@ -167,9 +167,8 @@
     @synchronized (self.runningOperations) {
         [self.runningOperations addObject:operation];
     }
-    // ⚠️如果设置了缓存过滤器，过滤一下url
+    
     // 通过url来获取到对应的cacheKey
-    // LJMARK
     NSString *key = [self cacheKeyForURL:url];
     
     // 这里设定了operation的缓存队列，通过上面获取到的cacheKey来查询缓存
@@ -211,7 +210,6 @@
             
             // ⚠️这里的判断条件和上面是一样的，看上面的⚠️标记(cachedImage不为nil，options为SDWebImageRefreshCached)
             if (cachedImage && options & SDWebImageRefreshCached) {
-                // LJMARK
                 // force progressive off if image already cached but forced refreshing
                 // 相当于downloaderOptions =  downloaderOption & ~SDWebImageDownloaderProgressiveDownload);
                 // downloaderOptions = 0000 0100 & 1111 1101 == 0000 0100
@@ -225,6 +223,9 @@
             // 创建一个下载的TOKEN
             // 调用imageDownloader去下载image
             SDWebImageDownloadToken *subOperationToken = [self.imageDownloader downloadImageWithURL:url options:downloaderOptions progress:progressBlock completed:^(UIImage *downloadedImage, NSData *downloadedData, NSError *error, BOOL finished) {
+                
+                // strong可以参考这个文章
+                // http://www.jianshu.com/p/bb63aabdb2db
                 __strong __typeof(weakOperation) strongOperation = weakOperation;
                 // operation（非subOperationToken）取消了
                 // 什么都不做。因为如果你要在此处调用completedBlock的话，可能会存在和其他的completedBlock产生条件竞争，可能会修改同一个数据
@@ -358,7 +359,8 @@
         }
     }
 }
-//
+
+// 这里就是直接调用完成的回调
 - (void)callCompletionBlockForOperation:(nullable SDWebImageCombinedOperation*)operation
                              completion:(nullable SDInternalCompletionBlock)completionBlock
                                   error:(nullable NSError *)error
@@ -366,7 +368,7 @@
     [self callCompletionBlockForOperation:operation completion:completionBlock image:nil data:nil error:error cacheType:SDImageCacheTypeNone finished:YES url:url];
 }
 
-//
+// 这里就是直接调用完成的回调
 - (void)callCompletionBlockForOperation:(nullable SDWebImageCombinedOperation*)operation
                              completion:(nullable SDInternalCompletionBlock)completionBlock
                                   image:(nullable UIImage *)image
