@@ -14,6 +14,7 @@ static const NSInteger kDefaultCacheMaxCacheAge = 60 * 60 * 24 * 7; // 1 week
 
 - (instancetype)init {
     if (self = [super init]) {
+        // 默认需要解压缩图片
         _shouldDecompressImages = YES;
         _shouldDisableiCloud = YES;
         _shouldCacheImagesInMemory = YES;

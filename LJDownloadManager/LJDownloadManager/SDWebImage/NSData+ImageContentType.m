@@ -11,7 +11,8 @@
 
 
 @implementation NSData (ImageContentType)
-
+// NSData+ImageContentType
+// 每张图片的开头会存储图片的类型信息
 + (SDImageFormat)sd_imageFormatForImageData:(nullable NSData *)data {
     if (!data) {
         return SDImageFormatUndefined;

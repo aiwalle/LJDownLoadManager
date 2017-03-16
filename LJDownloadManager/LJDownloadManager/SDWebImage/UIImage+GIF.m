@@ -18,13 +18,13 @@
     if (!data) {
         return nil;
     }
-
+    // 根据data创建一个CG下的imageSource
     CGImageSourceRef source = CGImageSourceCreateWithData((__bridge CFDataRef)data, NULL);
-
+    // 返回imageSource中的image数目，为后面创建CGImage提供index
     size_t count = CGImageSourceGetCount(source);
 
     UIImage *staticImage;
-
+    // count<=1的时候，就当单张图片
     if (count <= 1) {
         staticImage = [[UIImage alloc] initWithData:data];
     } else {
@@ -37,7 +37,7 @@
         CGFloat scale = 1;
         scale = [UIScreen mainScreen].scale;
 #endif
-        
+         // 根据指定的index创建CGImage
         CGImageRef CGImage = CGImageSourceCreateImageAtIndex(source, 0, NULL);
 #if SD_UIKIT || SD_WATCH
         UIImage *frameImage = [UIImage imageWithCGImage:CGImage scale:scale orientation:UIImageOrientationUp];

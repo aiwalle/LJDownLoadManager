@@ -23,11 +23,14 @@
     }
     
     UIImage *image;
+    // 根据data的前面几个字节，判断出图片类型，是jepg，png，gif还是...
     SDImageFormat imageFormat = [NSData sd_imageFormatForImageData:data];
+    // 如果是gif图片
     if (imageFormat == SDImageFormatGIF) {
         image = [UIImage sd_animatedGIFWithData:data];
     }
 #ifdef SD_WEBP
+    // webp图片
     else if (imageFormat == SDImageFormatWebP)
     {
         image = [UIImage sd_imageWithWebPData:data];
@@ -36,7 +39,9 @@
     else {
         image = [[UIImage alloc] initWithData:data];
 #if SD_UIKIT || SD_WATCH
+        // 获取朝向信息
         UIImageOrientation orientation = [self sd_imageOrientationFromImageData:data];
+        // 默认朝向就是向上的，所以如果不是向上的图片，才进行调整，省时间，优化
         if (orientation != UIImageOrientationUp) {
             image = [UIImage imageWithCGImage:image.CGImage
                                         scale:image.scale
@@ -51,6 +56,7 @@
 
 #if SD_UIKIT || SD_WATCH
 +(UIImageOrientation)sd_imageOrientationFromImageData:(nonnull NSData *)imageData {
+    // 保证如果imageData中获取不到朝向信息，就默认UIImageOrientationUp
     UIImageOrientation result = UIImageOrientationUp;
     CGImageSourceRef imageSource = CGImageSourceCreateWithData((__bridge CFDataRef)imageData, NULL);
     if (imageSource) {
@@ -60,6 +66,8 @@
             int exifOrientation;
             val = CFDictionaryGetValue(properties, kCGImagePropertyOrientation);
             if (val) {
+                // 这个kCGImagePropertyOrientation先转化为int值
+                // 然后用一个switch case语句将int转化为朝向的enum值（sd_exifOrientationToiOSOrientation）
                 CFNumberGetValue(val, kCFNumberIntType, &exifOrientation);
                 result = [self sd_exifOrientationToiOSOrientation:exifOrientation];
             } // else - if it's not set it remains at up
@@ -124,18 +132,27 @@
     NSData *imageData = nil;
     if (self) {
 #if SD_UIKIT || SD_WATCH
+        // 我们需要判断image是PNG还是JPEG
+        // PNG的图片很容易检测出来，因为它们有一个特定的标示 (http://www.w3.org/TR/PNG-Structure.html)
+        // PNG图片的前8个字节不许符合下面这些值(十进制表示)
+        // 137 80 78 71 13 10 26 10
+        
+        // 如果imageData为空 (举个例子，比如image在下载后需要transform，那么就imageData就会为空)
+        // 并且image有一个alpha通道, 我们将该image看做PNG以避免透明度(alpha)的丢失（因为JPEG没有透明色）
         int alphaInfo = CGImageGetAlphaInfo(self.CGImage);
+        // 该image中确实有透明信息，就认为image为PNG
         BOOL hasAlpha = !(alphaInfo == kCGImageAlphaNone ||
                           alphaInfo == kCGImageAlphaNoneSkipFirst ||
                           alphaInfo == kCGImageAlphaNoneSkipLast);
         
         BOOL usePNG = hasAlpha;
-        
+        // 但是如果我们已经有了imageData，我们就可以直接根据data中前几个字节判断是不是PNG
         // the imageFormat param has priority here. But if the format is undefined, we relly on the alpha channel
+        // 图片的格式参数有优先级，但是如果格式是未定义的，我们我有透明通道
         if (imageFormat != SDImageFormatUndefined) {
             usePNG = (imageFormat == SDImageFormatPNG);
         }
-        
+        // 如果image是PNG格式，就是用UIImagePNGRepresentation将其转化为NSData，否则按照JPEG格式转化，并且压缩质量为1，即无压缩
         if (usePNG) {
             imageData = UIImagePNGRepresentation(self);
         } else {

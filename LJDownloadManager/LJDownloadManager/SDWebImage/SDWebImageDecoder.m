@@ -16,17 +16,23 @@ static const size_t kBytesPerPixel = 4;
 static const size_t kBitsPerComponent = 8;
 
 + (nullable UIImage *)decodedImageWithImage:(nullable UIImage *)image {
+    
     if (![UIImage shouldDecodeImage:image]) {
         return image;
     }
     
     // autorelease the bitmap context and all vars to help system to free memory when there are memory warning.
     // on iOS7, do not forget to call [[SDImageCache sharedImageCache] clearMemory];
+    // 当下载大量的图片，产生内存警告时
+    // 自动释放bitmap上下文环境和所有变量
+    // 来释放系统内存空间
+    // 在iOS7中，不要忘记添加
+    // [[SDImageCache sharedImageCache] clearMemory];
     @autoreleasepool{
         
         CGImageRef imageRef = image.CGImage;
         CGColorSpaceRef colorspaceRef = [UIImage colorSpaceForImageRef:imageRef];
-        
+        // 图片宽高
         size_t width = CGImageGetWidth(imageRef);
         size_t height = CGImageGetHeight(imageRef);
         size_t bytesPerRow = kBytesPerPixel * width;
@@ -34,6 +40,11 @@ static const size_t kBitsPerComponent = 8;
         // kCGImageAlphaNone is not supported in CGBitmapContextCreate.
         // Since the original image here has no alpha info, use kCGImageAlphaNoneSkipLast
         // to create bitmap graphics contexts without alpha info.
+        // CGBitmapContextCreate不支持kCGImageAlphaNone。 由于这里的原始图像没有alpha信息，使用kCGImageAlphaNoneSkipLast来创建没有alpha信息的位图图形上下文。
+        // 当你调用这个函数的时候，Quartz创建一个位图绘制环境，也就是位图上下文。
+        // 当你向上下文中绘制信息时，Quartz把你要绘制的信息作为位图数据绘制到指定的内存块。
+        // 一个新的位图上下文的像素格式由三个参数决定：
+        // 每个组件的位数，颜色空间，alpha选项。alpha值决定了绘制像素的透明性。
         CGContextRef context = CGBitmapContextCreate(NULL,
                                                      width,
                                                      height,
@@ -46,12 +57,13 @@ static const size_t kBitsPerComponent = 8;
         }
         
         // Draw the image into the context and retrieve the new bitmap image without alpha
+        // 在上面创建的context绘制image，并以此获取image，而该image也将拥有alpha通道
         CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
         CGImageRef imageRefWithoutAlpha = CGBitmapContextCreateImage(context);
         UIImage *imageWithoutAlpha = [UIImage imageWithCGImage:imageRefWithoutAlpha
                                                          scale:image.scale
                                                    orientation:image.imageOrientation];
-        
+        // 开始释放资源
         CGContextRelease(context);
         CGImageRelease(imageRefWithoutAlpha);
         
@@ -214,10 +226,14 @@ static const CGFloat kDestSeemOverlap = 2.0f;   // the numbers of pixels to over
     }
 
     // do not decode animated images
+    // 对于animated images，不需要解压缩
     if (image.images != nil) {
         return NO;
     }
+    // 感觉下面的操作就是为了将image本身的alpha去除
+    // 然后创建bitmap后，重新加上alpha
     
+    // 图片如果有alpha通道，就返回原始image，因为jpg图片有alpha的话，就不压缩
     CGImageRef imageRef = image.CGImage;
     
     CGImageAlphaInfo alpha = CGImageGetAlphaInfo(imageRef);

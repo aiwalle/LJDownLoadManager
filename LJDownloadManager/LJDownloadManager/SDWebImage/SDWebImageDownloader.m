@@ -36,6 +36,7 @@
 + (void)initialize {
     // Bind SDNetworkActivityIndicator if available (download it here: http://github.com/rs/SDNetworkActivityIndicator )
     // To use it, just add #import "SDNetworkActivityIndicator.h" in addition to the SDWebImage import
+    // 如果你要使用这个SDWebImageDownloadStopNotification通知，需要绑定SDNetworkActivityIndicator，这个貌似是需要单独下载的。当然，你可以修改这部分源代码，换成别的ActivityIndicator
     if (NSClassFromString(@"SDNetworkActivityIndicator")) {
 
 #pragma clang diagnostic push
@@ -160,19 +161,28 @@
         // 为了防止潜在的重复缓存（NSURLCache + SDImageCache），我们禁用图像请求的缓存，如果告诉否则
         // 指定应从源代码加载URL加载的数据。 不应使用现有缓存数据来满足网址加载请求。
         NSURLRequestCachePolicy cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+        // SDWebImageDownloaderUseNSURLCache：在SDWebImage中，缺省情况下(默认情况)，request是不使用NSURLCache的，但是若使用该选项，就默认使用NSURLCache默认的缓存策略：NSURLRequestUseProtocolCachePolicy。
         if (options & SDWebImageDownloaderUseNSURLCache) {
             if (options & SDWebImageDownloaderIgnoreCachedResponse) {
+                // 指定现有高速缓存数据应用于满足请求，而不管其使用年限或到期日期。 如果在高速缓存中不存在与URL加载请求相对应的现有数据，则不尝试从源端加载数据，并且认为加载失败。 此常数指定类似于“离线”模式的行为。
                 cachePolicy = NSURLRequestReturnCacheDataDontLoad;
             } else {
+                // NSURLRequestUseProtocolCachePolicy:对特定的 URL 请求使用网络协议（如HTTP）中实现的缓存逻辑。这是默认的策略。该策略表示如果缓存不存在，直接从服务端获取。如果缓存存在，会根据response中的Cache-Control字段判断 下一步操作，如: Cache-Control字段为must-revalidata, 则 询问服务端该数据是否有更新，无更新话 直接返回给用户缓存数据，若已更新，则请求服务端.
                 cachePolicy = NSURLRequestUseProtocolCachePolicy;
             }
         }
         
         // 生成一个request对象
         NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url cachePolicy:cachePolicy timeoutInterval:timeoutInterval];
-        
+        // 如果设置HTTPShouldHandleCookies为YES，就处理存储在NSHTTPCookieStore中的cookies。
+        // HTTPShouldHandleCookies表示是否应该给request设置cookie并随request一起发送出去。
         request.HTTPShouldHandleCookies = (options & SDWebImageDownloaderHandleCookies);
+        // HTTPShouldUsePipelining表示receiver(理解为iOS客户端)的下一个信息是否必须等到上一个请求回复才能发送。
+        // 如果为YES表示可以，NO表示必须等receiver收到先前的回复才能发送下个信息。
         request.HTTPShouldUsePipelining = YES;
+        
+        // 如果你设置了SDWebImageDownloader的headersFilter，就是用你自定义的方法，来设置HTTP的header field。
+        // 如果没有自定义，就是用SDWebImage提供的HTTPHeaders。
         if (sself.headersFilter) {
             request.allHTTPHeaderFields = sself.headersFilter(url, [sself.HTTPHeaders copy]);
         }
@@ -181,14 +191,17 @@
         }
         // 这里生成了一个自定义NSOperation对象
         SDWebImageDownloaderOperation *operation = [[sself.operationClass alloc] initWithRequest:request inSession:sself.session options:options];
+        // 是否解压缩，默认是解压缩的
         operation.shouldDecompressImages = sself.shouldDecompressImages;
-        
+        // LJMARK:NSURLCredential的作用？
+        // web 服务可以在返回 http 响应时附带认证要求的challenge，作用是询问 http 请求的发起方是谁，这时发起方应提供正确的用户名和密码（即认证信息），然后 web 服务才会返回真正的 http 响应。
         if (sself.urlCredential) {
             operation.credential = sself.urlCredential;
         } else if (sself.username && sself.password) {
+            // NSURLCredentialPersistenceForSession表示在应用终止时，丢弃相应的 credential
             operation.credential = [NSURLCredential credentialWithUser:sself.username password:sself.password persistence:NSURLCredentialPersistenceForSession];
         }
-        
+        // 一般来说，优先级越高，执行越早
         if (options & SDWebImageDownloaderHighPriority) {
             operation.queuePriority = NSOperationQueuePriorityHigh;
         } else if (options & SDWebImageDownloaderLowPriority) {
@@ -198,7 +211,8 @@
         [sself.downloadQueue addOperation:operation];
         if (sself.executionOrder == SDWebImageDownloaderLIFOExecutionOrder) {
             // Emulate LIFO execution order by systematically adding new operations as last operation's dependency
-            // 通过系统地添加新操作作为上一个操作的依赖来模拟LIFO执行顺序
+            // 如果执行顺序为LIFO(last in first out，后进先出，栈结构)
+            // 就将新添加的operation作为最后一个operation的依赖，就是说，要执行最后一个operation，必须先执行完新添加的operation，这就实现了栈结构。
             [sself.lastAddedOperation addDependency:operation];
             sself.lastAddedOperation = operation;
         }
@@ -223,6 +237,7 @@
                                            createCallback:(SDWebImageDownloaderOperation *(^)())createCallback {
     // The URL will be used as the key to the callbacks dictionary so it cannot be nil. If it is nil immediately call the completed block with no image or data.
     // 这个URL将被用到作为key在回调字典中，不能为nil。如果为nil，直接返回无图片无数据在完成的回调里
+    // （本质是因为一个url基本上对应一个网络请求，而每个网络请求就是一个SDWebImageDownloaderOperation，而这个SDWebImageDownloaderOperation初始化是使用initWithRequest进行的，initWithRequest需要提供这些callbacks
     if (url == nil) {
         if (completedBlock != nil) {
             completedBlock(nil, nil, nil, NO);
@@ -232,6 +247,8 @@
 
     __block SDWebImageDownloadToken *token = nil;
 
+    // 此函数可能会有多个线程同时执行（因为允许多个图片的同时下载），那么就有可能会有多个线程同时修改URLOperations，所以使用dispatch_barrier_sync来保证同一时间只有一个线程在访问URLOperations
+    // 并且此处使用了一个单独的queue--barrierQueue，并且这个queue是一个DISPATCH_QUEUE_CONCURRENT类型的。也就是说，这里虽然允许你针对URLOperations的操作是并发执行的，但是因为使用了dispatch_barrier_sync，所以你必须保证之前针对URLOperations的操作要完成才能执行下面针对URLOperations的操作
     dispatch_barrier_sync(self.barrierQueue, ^{
         SDWebImageDownloaderOperation *operation = self.URLOperations[url];
         if (!operation) {
