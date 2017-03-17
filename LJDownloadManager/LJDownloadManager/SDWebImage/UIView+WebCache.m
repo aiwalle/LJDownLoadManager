@@ -56,6 +56,7 @@ static char TAG_ACTIVITY_SHOW;
         }
         
         __weak __typeof(self)wself = self;
+        // ⚠️这里的operation不是继承自NSOperation的，我们可以把它看做一个关联视图操作的对象，我们称它为op对象
         id <SDWebImageOperation> operation = [SDWebImageManager.sharedManager loadImageWithURL:url options:options progress:progressBlock completed:^(UIImage *image, NSData *data, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
             __strong __typeof (wself) sself = wself;
             // 图像下载成功后，移除ActivityIndicator
@@ -69,6 +70,7 @@ static char TAG_ACTIVITY_SHOW;
                 }
                 // 如果有image且options为SDWebImageAvoidAutoSetImage且有completedBlock
                 if (image && (options & SDWebImageAvoidAutoSetImage) && completedBlock) {
+                    // 在这里获取到图片，且做一些加工的操作
                     completedBlock(image, error, cacheType, url);
                     return;
                 } else if (image) {
@@ -91,6 +93,7 @@ static char TAG_ACTIVITY_SHOW;
                 }
             });
         }];
+        // 将现在的op对象加到对应的视图实例中
         [self sd_setImageLoadOperation:operation forKey:validOperationKey];
     } else {
         // 如果url为空，抛出错误

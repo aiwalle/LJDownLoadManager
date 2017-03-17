@@ -18,15 +18,16 @@ typedef void(^SDSetImageBlock)(UIImage * _Nullable image, NSData * _Nullable ima
 
 /**
  * Get the current image URL.
- *
+ * 获取当前的图像url
  * Note that because of the limitations of categories this property can get out of sync
  * if you use setImage: directly.
+ * 由于类别的限制，如果您直接使用setImage：，此属性可能会失去同步
  */
 - (nullable NSURL *)sd_imageURL;
 
 /**
  * Set the imageView `image` with an `url` and optionally a placeholder image.
- *
+ * 使用一个url和可选的占位图片来设置imageView的image
  * The download is asynchronous and cached.
  *
  * @param url            The url for the image.
@@ -34,6 +35,7 @@ typedef void(^SDSetImageBlock)(UIImage * _Nullable image, NSData * _Nullable ima
  * @param options        The options to use when downloading the image. @see SDWebImageOptions for the possible values.
  * @param operationKey   A string to be used as the operation key. If nil, will use the class name
  * @param setImageBlock  Block used for custom set image code
+ *                       用来自定义设置图片的代码
  * @param progressBlock  A block called while image is downloading
  *                       @note the progress block is executed on a background queue
  * @param completedBlock A block called when operation has been completed. This block has no return value
@@ -61,12 +63,13 @@ typedef void(^SDSetImageBlock)(UIImage * _Nullable image, NSData * _Nullable ima
 
 /**
  *  Show activity UIActivityIndicatorView
+ *  显示指示器
  */
 - (void)sd_setShowActivityIndicatorView:(BOOL)show;
 
 /**
  *  set desired UIActivityIndicatorViewStyle
- *
+ *  设置指示器的样式
  *  @param style The style of the UIActivityIndicatorView
  */
 - (void)sd_setIndicatorStyle:(UIActivityIndicatorViewStyle)style;

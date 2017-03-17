@@ -107,6 +107,10 @@ static const CGFloat kDestSeemOverlap = 2.0f;   // the numbers of pixels to over
     
     // autorelease the bitmap context and all vars to help system to free memory when there are memory warning.
     // on iOS7, do not forget to call [[SDImageCache sharedImageCache] clearMemory];
+    // 当下载大量的图片，产生内存警告时
+    // 自动释放bitmap上下文环境和所有变量
+    // 来释放系统内存空间
+    // 在iOS7中，不要忘记添加
     @autoreleasepool {
         CGImageRef sourceImageRef = image.CGImage;
         

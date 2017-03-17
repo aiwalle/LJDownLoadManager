@@ -124,6 +124,7 @@ typedef NSMutableDictionary<NSString *, id> SDCallbacksDictionary;
 }
 
 // 实现了NSOperation的子类，那么要让其运行起来，要么实现main(),要么实现start()。
+// 如果你只是想弄一个同步的方法，那很简单，你只要重写main这个函数，在里面添加你要的操作。如果想定义异步的方法的话就重写start方法
 - (void)start {
     @synchronized (self) {
         // 判断当前这个SDWebImageDownloaderOperation是否取消了，如果取消了，即认为该任务已经完成，并且及时回收资源（即reset）

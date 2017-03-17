@@ -19,7 +19,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageDownloaderOptions) {
     /**
      * By default, request prevent the use of NSURLCache. With this flag, NSURLCache
      * is used with default policies.
-     * 在SDWebImage中，缺省情况下，request是不使用NSURLCache的，但是若使用该选项，就默认使用NSURLCache默认的缓存策略：NSURLRequestUseProtocolCachePolicy。
+     * 在SDWebImage中，默认情况下，request是不使用NSURLCache的，但是若使用该选项，就默认使用NSURLCache默认的缓存策略：NSURLRequestUseProtocolCachePolicy。
      */
     SDWebImageDownloaderUseNSURLCache = 1 << 2,
 

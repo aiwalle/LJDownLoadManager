@@ -189,7 +189,7 @@
         else {
             request.allHTTPHeaderFields = sself.HTTPHeaders;
         }
-        // 这里生成了一个自定义NSOperation对象  _operationClass = [SDWebImageDownloaderOperation class];
+        // 这里生成了继承自NSOperation对象  _operationClass = [SDWebImageDownloaderOperation class];
         SDWebImageDownloaderOperation *operation = [[sself.operationClass alloc] initWithRequest:request inSession:sself.session options:options];
         // 是否解压缩，默认是解压缩的
         operation.shouldDecompressImages = sself.shouldDecompressImages;
@@ -262,6 +262,7 @@
               SDWebImageDownloaderOperation *soperation = woperation;
               if (!soperation) return;
               if (self.URLOperations[url] == soperation) {
+                  // 完成后将对应的operation移除
                   [self.URLOperations removeObjectForKey:url];
               };
             };

@@ -40,6 +40,7 @@
     return instance;
 }
 
+// 使用SDImageCache和SDWebImageDownloader来初始化SDWebImageManager
 - (nonnull instancetype)init {
     SDImageCache *cache = [SDImageCache sharedImageCache];
     SDWebImageDownloader *downloader = [SDWebImageDownloader sharedDownloader];
@@ -121,7 +122,7 @@
     }];
 }
 
-// 通过url建立一个operation用来下载图片.
+// 通过url建立一个op对象用来下载图片.
 - (id <SDWebImageOperation>)loadImageWithURL:(nullable NSURL *)url
                                      options:(SDWebImageOptions)options
                                     progress:(nullable SDWebImageDownloaderProgressBlock)progressBlock
@@ -179,8 +180,8 @@
             [self safelyRemoveOperationFromRunning:operation];
             return;
         }
-        // 1.cachedImage为nil，SDWebImageManager的代理对象没有实现imageManager:shouldDownloadImageForURL:
-        // 2.cachedImage为nil，SDWebImageManager的代理对象，YES--->代理对象返回（当图像没有在内存中找到的时候，控制是否下载图像）
+        // 1.cachedImage为nil，SDWebImageManager的代理对象没有实现imageManager:shouldDownloadImageForURL:(如果无缓存，这种就是默认情况)
+        // 2.cachedImage为nil，SDWebImageManager的代理对象，YES--->代理对象返回（当图像没有在内存中找到的时候，控制是否下载图像）(无缓存，但是实现了代理方法且返回YES)
         // 3.options为SDWebImageRefreshCached，SDWebImageManager的代理对象没有实现imageManager:shouldDownloadImageForURL:
         // 4.options为SDWebImageRefreshCached，SDWebImageManager的代理对象，YES--->代理对象返回（当图像没有在内存中找到的时候，控制是否下载图像）
         if ((!cachedImage || options & SDWebImageRefreshCached) && (![self.delegate respondsToSelector:@selector(imageManager:shouldDownloadImageForURL:)] || [self.delegate imageManager:self shouldDownloadImageForURL:url])) {
@@ -233,6 +234,7 @@
                     // Do nothing if the operation was cancelled
                     // See #699 for more details
                     // if we would call the completedBlock, there could be a race condition between this block and another completedBlock for the same object, so if this one is called second, we will overwrite the new data
+                    // 如果我们调用完成的block，在这个block和另一个完成的block之间可能存在竞争条件，因此如果这个被第二个调用，我们将覆盖新的数据
                 } else if (error) {
                     // 判断operation是否取消了（检查是否取消要勤快点），没有取消，就调用completedBlock，处理error。
                     [self callCompletionBlockForOperation:strongOperation completion:completedBlock error:error url:url];
@@ -280,7 +282,7 @@
                             if (transformedImage && finished) {
                                 BOOL imageWasTransformed = ![transformedImage isEqual:downloadedImage];
                                 // pass nil if the image was transformed, so we can recalculate the data from the image
-                                // 如果图像被转换，则通过nil，因此我们可以从图像重新计算数据
+                                // 如果图像被转换，则给imageData传入nil，因此我们可以从图像重新计算数据
                                 [self.imageCache storeImage:transformedImage imageData:(imageWasTransformed ? nil : downloadedData) forKey:key toDisk:cacheOnDisk completion:nil];
                             }
                             
