@@ -171,7 +171,7 @@
  *                       is nil and the second parameter may contain an NSError. The third parameter is a Boolean
  *                       indicating if the image was retrieved from the local cache or from the network.
  *                       The fourth parameter is the original image url.
- * completedBlock:当操作结束时调用的block,这个block没有返回值，吧请求到的图像作为第一个参数，如果发生错误的话，第一个参数为空，第二个参数会包含一个NSError对象，第三个参数是一个bool值，指是从本地缓存还是从网络来重新获取图像，第四个参数是图片原始的url
+ * completedBlock:当操作结束时调用的block,这个block没有返回值，把请求到的图像作为第一个参数，如果发生错误的话，第一个参数为空，第二个参数会包含一个NSError对象，第三个参数是一个bool值，指是从本地缓存还是从网络来重新获取图像，第四个参数是图片原始的url
  */
 - (void)sd_setImageWithURL:(nullable NSURL *)url
           placeholderImage:(nullable UIImage *)placeholder

@@ -66,18 +66,22 @@ static char TAG_ACTIVITY_SHOW;
             }
             dispatch_main_async_safe(^{
                 if (!sself) {
+                    NSLog(@"123");
                     return;
                 }
                 // 如果有image且options为SDWebImageAvoidAutoSetImage且有completedBlock
                 if (image && (options & SDWebImageAvoidAutoSetImage) && completedBlock) {
                     // 在这里获取到图片，且做一些加工的操作
                     completedBlock(image, error, cacheType, url);
+                    
+                    NSLog(@"1233");
                     return;
                 } else if (image) {
                     // 如果有image，设置视图的图像
                     [sself sd_setImage:image imageData:data basedOnClassOrViaCustomSetImageBlock:setImageBlock];
                     // 标记设为需要布局
                     [sself sd_setNeedsLayout];
+                    NSLog(@"123333");
                 } else {
                     // image已经尝试获取过了，但是没有从网络端获取到
                     // 如果options为SDWebImageDelayPlaceholder，当前视图设置为占位图片
@@ -85,16 +89,20 @@ static char TAG_ACTIVITY_SHOW;
                     if ((options & SDWebImageDelayPlaceholder)) {
                         [sself sd_setImage:placeholder imageData:nil basedOnClassOrViaCustomSetImageBlock:setImageBlock];
                         [sself sd_setNeedsLayout];
+                        NSLog(@"12334");
                     }
+                    NSLog(@"12335");
                 }
                 // 有completedBlock且下载finished为yes，将需要的参数传出去
                 if (completedBlock && finished) {
                     completedBlock(image, error, cacheType, url);
+                    NSLog(@"1244444443");
                 }
             });
         }];
         // 将现在的op对象加到对应的视图实例中
         [self sd_setImageLoadOperation:operation forKey:validOperationKey];
+        NSLog(@"1233232432423");
     } else {
         // 如果url为空，抛出错误
         dispatch_main_async_safe(^{

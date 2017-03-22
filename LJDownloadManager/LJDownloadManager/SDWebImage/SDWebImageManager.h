@@ -15,7 +15,6 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
     /**
      * By default, when a URL fail to be downloaded, the URL is blacklisted so the library won't keep trying.
      * This flag disable this blacklisting.
-     * 默认情况下，当一个URL下载失败的时候，这个URL在黑名单，且这个库不会尝试再次下载
      * 默认情况下,如果一个url在下载的时候失败了,那么这个url会被加入黑名单并且library不会尝试再次下载,这个flag会阻止library把失败的url加入黑名单(简单来说如果选择了这个flag,那么即使某个url下载失败了,sdwebimage还是会尝试再次下载他.)
      */
     SDWebImageRetryFailed = 1 << 0,
@@ -37,7 +36,7 @@ typedef NS_OPTIONS(NSUInteger, SDWebImageOptions) {
     /**
      * This flag enables progressive download, the image is displayed progressively during download as a browser would do.
      * By default, the image is only displayed once completely downloaded.
-     * 这个标志可以渐进式下载,显示的图像是逐步在下载(就像你用浏览器浏览网页的时候那种图片下载,一截一截的显示(待确认)
+     * 这个标志可以渐进式下载,显示的图像是逐步在下载(就像你用浏览器浏览网页的时候那种图片下载,一截一截的显示
      */
     SDWebImageProgressiveDownload = 1 << 3,
 
@@ -229,15 +228,15 @@ SDWebImageManager *manager = [SDWebImageManager sharedManager];
  * Downloads the image at the given URL if not present in cache or return the cached version otherwise.
  * 如果不存在于缓存中，请下载给定URL的图像，否则返回缓存的版本。
  * @param url            The URL to the image
- * 图像的url
+ * url 图像的url
  * @param options        A mask to specify options to use for this request
- * 指定用于此请求的选项的掩码
+ * options 指定用于此请求的选项的掩码
  * @param progressBlock  A block called while image is downloading
  *                       @note the progress block is executed on a background queue
- * 当图像下载中时调用的block
+ * progressBlock 当图像下载中时调用的block
  * 这个进程的回调是在一个后台队列执行
  * @param completedBlock A block called when operation has been completed.
- * 当操作完成的回调
+ * completedBlock 当操作完成的回调
  *   This parameter is required.
  
  *   这个参数是必须的

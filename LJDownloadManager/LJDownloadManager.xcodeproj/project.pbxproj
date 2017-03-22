@@ -38,6 +38,7 @@
 		18AC1E891E77B4B20088B60B /* UIImageView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 18AC1E731E77B4B20088B60B /* UIImageView+WebCache.m */; };
 		18AC1E8A1E77B4B20088B60B /* UIView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 18AC1E751E77B4B20088B60B /* UIView+WebCache.m */; };
 		18AC1E8B1E77B4B20088B60B /* UIView+WebCacheOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 18AC1E771E77B4B20088B60B /* UIView+WebCacheOperation.m */; };
+		18F8EE4F1E82564C0034E715 /* UIView+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EE4E1E82564C0034E715 /* UIView+Animation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -103,6 +104,8 @@
 		18AC1E751E77B4B20088B60B /* UIView+WebCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+WebCache.m"; sourceTree = "<group>"; };
 		18AC1E761E77B4B20088B60B /* UIView+WebCacheOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+WebCacheOperation.h"; sourceTree = "<group>"; };
 		18AC1E771E77B4B20088B60B /* UIView+WebCacheOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+WebCacheOperation.m"; sourceTree = "<group>"; };
+		18F8EE4D1E82564C0034E715 /* UIView+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Animation.h"; sourceTree = "<group>"; };
+		18F8EE4E1E82564C0034E715 /* UIView+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Animation.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -139,6 +142,8 @@
 				1819E1711DBF2D470017B2CB /* AFNetworking */,
 				1819E15D1DBF0D910017B2CB /* AppDelegate.h */,
 				1819E15E1DBF0D910017B2CB /* AppDelegate.m */,
+				18F8EE4D1E82564C0034E715 /* UIView+Animation.h */,
+				18F8EE4E1E82564C0034E715 /* UIView+Animation.m */,
 				1819E1601DBF0D910017B2CB /* ViewController.h */,
 				1819E1611DBF0D910017B2CB /* ViewController.m */,
 				1819E1631DBF0D910017B2CB /* Main.storyboard */,
@@ -310,6 +315,7 @@
 				1819E15C1DBF0D910017B2CB /* main.m in Sources */,
 				18AC1E881E77B4B20088B60B /* UIImageView+HighlightedWebCache.m in Sources */,
 				1819E1811DBF2D470017B2CB /* AFSecurityPolicy.m in Sources */,
+				18F8EE4F1E82564C0034E715 /* UIView+Animation.m in Sources */,
 				18AC1E801E77B4B20088B60B /* SDWebImageDownloader.m in Sources */,
 				18AC1E7E1E77B4B20088B60B /* SDWebImageCompat.m in Sources */,
 				1819E1821DBF2D470017B2CB /* AFURLRequestSerialization.m in Sources */,
