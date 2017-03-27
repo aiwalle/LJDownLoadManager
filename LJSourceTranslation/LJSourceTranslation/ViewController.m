@@ -9,6 +9,7 @@
 #import "ViewController.h"
 #import "SDWebImage/UIImageView+WebCache.h"
 #import "UIView+Animation.h"
+#import "DownloadController.h"
 @interface ViewController ()
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
@@ -16,6 +17,10 @@
 @end
 
 @implementation ViewController
+- (IBAction)push:(id)sender {
+    
+    [self.navigationController pushViewController:[DownloadController new] animated:YES];
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -29,7 +34,7 @@
     //        [weakSelf.imageView crossDissolveAnimationForWebImageWithType:cacheType image:image];
     //    }];
     
-    [self.imageView lj_setImageWithURL:[NSURL URLWithString:@"https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png"] placeholderImage:[UIImage imageNamed:@"placeholder"]];
+//    [self.imageView lj_setImageWithURL:[NSURL URLWithString:@"https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png"] placeholderImage:[UIImage imageNamed:@"placeholder"]];
     
 
     

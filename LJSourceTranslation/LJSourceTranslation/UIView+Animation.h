@@ -22,7 +22,7 @@
  *
  *  @param image 获取到的图片
  */
-- (void)crossDissolveAnimationForWebImageWithType:(SDImageCacheType)type image:(UIImage *)image;
+- (void)crossDissolveAnimationForWebImageWithType:(SDImageCacheType)type image:(nullable UIImage *)image;
 
 - (void)lj_setImageWithURL:(nullable NSURL *)url placeholderImage:(nullable UIImage *)placeholder;
 

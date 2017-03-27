@@ -39,6 +39,9 @@
 		18F8EEE61E88E28B0034E715 /* UIView+WebCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EECC1E88E28B0034E715 /* UIView+WebCache.m */; };
 		18F8EEE71E88E28B0034E715 /* UIView+WebCacheOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EECE1E88E28B0034E715 /* UIView+WebCacheOperation.m */; };
 		18F8EEEA1E88E3300034E715 /* UIView+Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EEE91E88E3300034E715 /* UIView+Animation.m */; };
+		18F8EF101E88ECD20034E715 /* DownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF0F1E88ECD20034E715 /* DownloadController.m */; };
+		18F8EF141E88F08A0034E715 /* LJDownLoadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */; };
+		18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -106,6 +109,12 @@
 		18F8EECE1E88E28B0034E715 /* UIView+WebCacheOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+WebCacheOperation.m"; sourceTree = "<group>"; };
 		18F8EEE81E88E3300034E715 /* UIView+Animation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIView+Animation.h"; sourceTree = "<group>"; };
 		18F8EEE91E88E3300034E715 /* UIView+Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIView+Animation.m"; sourceTree = "<group>"; };
+		18F8EF0E1E88ECD20034E715 /* DownloadController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DownloadController.h; sourceTree = "<group>"; };
+		18F8EF0F1E88ECD20034E715 /* DownloadController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DownloadController.m; sourceTree = "<group>"; };
+		18F8EF121E88F08A0034E715 /* LJDownLoadManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJDownLoadManager.h; sourceTree = "<group>"; };
+		18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoadManager.m; sourceTree = "<group>"; };
+		18F8EF151E8903470034E715 /* LJDownLoadFileTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJDownLoadFileTool.h; sourceTree = "<group>"; };
+		18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoadFileTool.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,6 +153,9 @@
 				18F8EE851E88E2640034E715 /* AppDelegate.m */,
 				18F8EE871E88E2640034E715 /* ViewController.h */,
 				18F8EE881E88E2640034E715 /* ViewController.m */,
+				18F8EF111E88F0690034E715 /* LJDownLoadManager */,
+				18F8EF0E1E88ECD20034E715 /* DownloadController.h */,
+				18F8EF0F1E88ECD20034E715 /* DownloadController.m */,
 				18F8EEE81E88E3300034E715 /* UIView+Animation.h */,
 				18F8EEE91E88E3300034E715 /* UIView+Animation.m */,
 				18F8EE8A1E88E2640034E715 /* Main.storyboard */,
@@ -237,6 +249,17 @@
 			path = FLAnimatedImage;
 			sourceTree = "<group>";
 		};
+		18F8EF111E88F0690034E715 /* LJDownLoadManager */ = {
+			isa = PBXGroup;
+			children = (
+				18F8EF121E88F08A0034E715 /* LJDownLoadManager.h */,
+				18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */,
+				18F8EF151E8903470034E715 /* LJDownLoadFileTool.h */,
+				18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */,
+			);
+			path = LJDownLoadManager;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -317,7 +340,9 @@
 				18F8EEE61E88E28B0034E715 /* UIView+WebCache.m in Sources */,
 				18F8EED91E88E28B0034E715 /* SDImageCacheConfig.m in Sources */,
 				18F8EE861E88E2640034E715 /* AppDelegate.m in Sources */,
+				18F8EF141E88F08A0034E715 /* LJDownLoadManager.m in Sources */,
 				18F8EEEA1E88E3300034E715 /* UIView+Animation.m in Sources */,
+				18F8EF101E88ECD20034E715 /* DownloadController.m in Sources */,
 				18F8EED51E88E28B0034E715 /* MKAnnotationView+WebCache.m in Sources */,
 				18F8EEE01E88E28B0034E715 /* UIButton+WebCache.m in Sources */,
 				18F8EEDD1E88E28B0034E715 /* SDWebImageDownloaderOperation.m in Sources */,
@@ -334,6 +359,7 @@
 				18F8EEDB1E88E28B0034E715 /* SDWebImageDecoder.m in Sources */,
 				18F8EEE31E88E28B0034E715 /* UIImage+WebP.m in Sources */,
 				18F8EEDE1E88E28B0034E715 /* SDWebImageManager.m in Sources */,
+				18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */,
 				18F8EEE71E88E28B0034E715 /* UIView+WebCacheOperation.m in Sources */,
 				18F8EED81E88E28B0034E715 /* SDImageCache.m in Sources */,
 				18F8EECF1E88E28B0034E715 /* AFHTTPSessionManager.m in Sources */,
@@ -494,6 +520,7 @@
 				18F8EE971E88E2640034E715 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
