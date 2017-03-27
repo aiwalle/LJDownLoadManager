@@ -247,7 +247,7 @@
 
     __block SDWebImageDownloadToken *token = nil;
 
-    // 此函数可能会有多个线程同时执行（因为允许多个图片的同时下载），那么就有可能会有多个线程同时修改URLOperations，所以使用dispatch_barrier_sync来保证同一时间只有一个线程在访问URLOperations
+    // 此函数可能会有多个线程同时执行(一个图片多次赋值)（因为允许多个图片的同时下载），那么就有可能会有多个线程同时修改URLOperations，所以使用dispatch_barrier_sync来保证同一时间只有一个线程在访问URLOperations
     // 并且此处使用了一个单独的queue--barrierQueue，并且这个queue是一个DISPATCH_QUEUE_CONCURRENT类型的。也就是说，这里虽然允许你针对URLOperations的操作是并发执行的，但是因为使用了dispatch_barrier_sync，所以你必须保证之前针对URLOperations的操作要完成才能执行下面针对URLOperations的操作
     dispatch_barrier_sync(self.barrierQueue, ^{
         SDWebImageDownloaderOperation *operation = self.URLOperations[url];

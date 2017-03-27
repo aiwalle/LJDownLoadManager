@@ -21,22 +21,22 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="tEl-sE-iBS">
+                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="048-Gs-S9A">
                                 <rect key="frame" x="87" y="233" width="200" height="200"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" constant="200" id="NgC-rf-TaM"/>
-                                    <constraint firstAttribute="height" constant="200" id="yM4-PR-7tL"/>
+                                    <constraint firstAttribute="height" constant="200" id="bq7-hL-FVF"/>
+                                    <constraint firstAttribute="width" constant="200" id="xuN-c8-rRK"/>
                                 </constraints>
                             </imageView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="tEl-sE-iBS" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="g3u-dj-3Bu"/>
-                            <constraint firstItem="tEl-sE-iBS" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="q5G-db-2g1"/>
+                            <constraint firstItem="048-Gs-S9A" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="B8z-K3-Zmx"/>
+                            <constraint firstItem="048-Gs-S9A" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="wPe-Ge-7Yd"/>
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="imageView" destination="tEl-sE-iBS" id="d5B-sm-rzT"/>
+                        <outlet property="imageView" destination="048-Gs-S9A" id="9J7-k1-fRd"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

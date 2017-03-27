@@ -434,6 +434,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     // LJMARK:这里的operation有点莫名其妙，干啥用的
     NSOperation *operation = [NSOperation new];
     dispatch_async(self.ioQueue, ^{
+        NSLog(@"nstread---%@", [NSThread currentThread]);
         if (operation.isCancelled) {
             // do not call the completion if cancelled
             return;

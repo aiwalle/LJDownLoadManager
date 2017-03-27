@@ -228,7 +228,7 @@
                 // strong可以参考这个文章
                 // http://www.jianshu.com/p/bb63aabdb2db
                 __strong __typeof(weakOperation) strongOperation = weakOperation;
-                // operation（非subOperationToken）取消了
+                // operation（非subOperationToken）取消了,SDWebImageCombinedOperation
                 // 什么都不做。因为如果你要在此处调用completedBlock的话，可能会存在和其他的completedBlock产生条件竞争，可能会修改同一个数据
                 if (!strongOperation || strongOperation.isCancelled) {
                     // Do nothing if the operation was cancelled
