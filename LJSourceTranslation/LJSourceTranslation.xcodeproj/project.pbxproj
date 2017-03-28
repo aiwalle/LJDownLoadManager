@@ -42,6 +42,7 @@
 		18F8EF101E88ECD20034E715 /* DownloadController.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF0F1E88ECD20034E715 /* DownloadController.m */; };
 		18F8EF141E88F08A0034E715 /* LJDownLoadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */; };
 		18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */; };
+		18F8EF1A1E8A29670034E715 /* NSString+LJMD5.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF191E8A29670034E715 /* NSString+LJMD5.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -115,6 +116,8 @@
 		18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoadManager.m; sourceTree = "<group>"; };
 		18F8EF151E8903470034E715 /* LJDownLoadFileTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJDownLoadFileTool.h; sourceTree = "<group>"; };
 		18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoadFileTool.m; sourceTree = "<group>"; };
+		18F8EF181E8A29670034E715 /* NSString+LJMD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+LJMD5.h"; sourceTree = "<group>"; };
+		18F8EF191E8A29670034E715 /* NSString+LJMD5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+LJMD5.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -256,6 +259,8 @@
 				18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */,
 				18F8EF151E8903470034E715 /* LJDownLoadFileTool.h */,
 				18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */,
+				18F8EF181E8A29670034E715 /* NSString+LJMD5.h */,
+				18F8EF191E8A29670034E715 /* NSString+LJMD5.m */,
 			);
 			path = LJDownLoadManager;
 			sourceTree = "<group>";
@@ -291,7 +296,7 @@
 				TargetAttributes = {
 					18F8EE7D1E88E2640034E715 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = U34P9L9V3V;
+						DevelopmentTeam = MGFZH32ZY8;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -358,6 +363,7 @@
 				18F8EEE41E88E28B0034E715 /* UIImageView+HighlightedWebCache.m in Sources */,
 				18F8EEDB1E88E28B0034E715 /* SDWebImageDecoder.m in Sources */,
 				18F8EEE31E88E28B0034E715 /* UIImage+WebP.m in Sources */,
+				18F8EF1A1E8A29670034E715 /* NSString+LJMD5.m in Sources */,
 				18F8EEDE1E88E28B0034E715 /* SDWebImageManager.m in Sources */,
 				18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */,
 				18F8EEE71E88E28B0034E715 /* UIView+WebCacheOperation.m in Sources */,
@@ -481,7 +487,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = U34P9L9V3V;
+				DEVELOPMENT_TEAM = MGFZH32ZY8;
 				INFOPLIST_FILE = LJSourceTranslation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.walle.LJSourceTranslation;
@@ -493,7 +499,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = U34P9L9V3V;
+				DEVELOPMENT_TEAM = MGFZH32ZY8;
 				INFOPLIST_FILE = LJSourceTranslation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.walle.LJSourceTranslation;

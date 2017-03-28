@@ -1,4 +1,4 @@
-//
+ //
 //  LJDownLoadManager.m
 //  LJSourceTranslation
 //
@@ -8,6 +8,7 @@
 
 #import "LJDownLoadManager.h"
 #import "LJDownLoadFileTool.h"
+#import "NSString+LJMD5.h"
 #define LJCacheDir NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject
 #define LJTempDir NSTemporaryDirectory()
 
@@ -23,8 +24,9 @@
 @property (nonatomic, strong) NSURLSession *session;
 
 @property (nonatomic, strong) NSOutputStream *outputStream;
-@property (nonatomic, strong) NSURL *url;
-@property (nonatomic, strong) NSOperationQueue *queue;
+//@property (nonatomic, strong) NSURL *url;
+//@property (nonatomic, strong) NSOperationQueue *queue;
+@property (nonatomic, weak) NSURLSessionDataTask *dataTask;
 @end
 
 @implementation LJDownLoadManager
@@ -32,25 +34,56 @@
 - (NSURLSession *)session {
     if (!_session) {
         NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
-        _queue = [NSOperationQueue new];
-        _queue.maxConcurrentOperationCount = 2;
-        _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:_queue];
+//        _queue = [NSOperationQueue new];
+//        _queue.maxConcurrentOperationCount = 6;
+        // TODO:队列问题还没解决
+        _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:[NSOperationQueue mainQueue]];
     }
     return _session;
+}
+
+- (void)setDownLoadStatus:(LJDownLoadStatus)downLoadStatus {
+    _downLoadStatus = downLoadStatus;
+    
+}
+
+- (void)downLoadWithURL:(NSURL *)url downLoadInfo:(LJDownLoadInfoBlock)Info downLoadSuccess:(LJDownLoadSucessBlock)success downLoadFail:(LJDownLoadFailBlock)fail {
+    self.info = Info;
+    self.success = success;
+    self.fail = fail;
+    [self downLoadWithURL:url];
 }
 
 - (void)downLoadWithURL:(NSURL *)url {
     // 最终的下载地址
     self.cacheFilePath = [LJCacheDir stringByAppendingString:url.lastPathComponent];
     // 临时文件地址
-    self.tempFilePath = [LJTempDir stringByAppendingString:url.lastPathComponent];
+    self.tempFilePath = [LJTempDir stringByAppendingString:[url.absoluteString md5Str]];
     
     // 看文件是否已经下载好
     if ([LJDownLoadFileTool isFileExists:self.cacheFilePath]) {
+        self.downLoadStatus = LJDownLoadStatusSuccess;
         NSLog(@"该文件已存在");
         return;
     }
-    _url = url;
+    // 如果已经存在这个下载的URL，返回
+    if ([url isEqual:self.dataTask.originalRequest.URL]) {
+        // 如果暂停状态，恢复下载
+        if (self.downLoadStatus == LJDownLoadStatusPause) {
+            [self resume];
+            return;
+        }
+        // 如果正在下载，返回
+        if (self.downLoadStatus == LJDownLoadStatusDownLoading) {
+            return;
+        }
+        
+    }
+    
+//    _url = url;
+    
+    
+    
     // 计算临时文件的大小
     _tempFileSize = [LJDownLoadFileTool fileSizeWithPath:self.tempFilePath];
     // 开始下载
@@ -59,16 +92,47 @@
 //    [self downLoadWithURL:url offset:3000];
 }
 
+// 恢复
+// 如果你调用了两次suspend，就需要调用两次resume来继续
+- (void)resume {
+    if (self.downLoadStatus == LJDownLoadStatusPause) {
+        [self.dataTask resume];
+        self.downLoadStatus = LJDownLoadStatusDownLoading;
+    }
+}
+
+// 暂停
+// 如果你调用了两次resume，就需要调用两次suspend来暂停
+- (void)pause {
+    if (self.downLoadStatus == LJDownLoadStatusDownLoading) {
+        [self.dataTask suspend];
+        self.downLoadStatus = LJDownLoadStatusPause;
+    }
+}
+
+// 取消
+- (void)cancel {
+    [self.session invalidateAndCancel];
+    self.session = nil;
+}
+
+// 取消并清除缓存
+- (void)cancelAndClearCache {
+    [self cancel];
+    [LJDownLoadFileTool removeFileAtPath:self.tempFilePath];
+}
 
 - (void)downLoadWithURL:(NSURL *)url offset:(long long)offset {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     [request setValue:[NSString stringWithFormat:@"bytes=%lld-", offset] forHTTPHeaderField:@"Range"];
     NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request];
     [dataTask resume];
+    self.dataTask = dataTask;
 }
 
 #pragma mark - NSURLSessionDataDelegate 
 // 当收到响应的时候调用
+// 如果超时 也会受到响应
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler {
     NSLog(@"respon==%@", response);
     NSLog(@"tread---%@", [NSThread currentThread]);
@@ -86,6 +150,7 @@
     if (_tempFileSize == _totalFileSize) {
         NSLog(@"文件下载完毕，移到cache文件");
         [LJDownLoadFileTool moveFile:self.tempFilePath toPath:self.cacheFilePath];
+        self.downLoadStatus = LJDownLoadStatusSuccess;
         completionHandler(NSURLSessionResponseCancel);
         return;
     }
@@ -100,7 +165,7 @@
     }
     
     NSLog(@"继续下载文件");
-    
+    self.downLoadStatus = LJDownLoadStatusDownLoading;
     self.outputStream = [NSOutputStream outputStreamToFileAtPath:self.tempFilePath append:YES];
     [self.outputStream open];
     // 传入NSURLSessionResponseAllow，表示允许继续下载，如果不传入将终止下载
@@ -109,7 +174,7 @@
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
     NSLog(@"正常接收数据中");
-    NSLog(@"tread2222222---%@---%@", [NSThread currentThread], _url);
+//    NSLog(@"tread2222222---%@---%@", [NSThread currentThread], _url);
     [self.outputStream write:data.bytes maxLength:data.length];
 }
 
