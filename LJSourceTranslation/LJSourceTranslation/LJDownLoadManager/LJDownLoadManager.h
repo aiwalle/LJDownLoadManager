@@ -7,38 +7,59 @@
 //
 
 #import <Foundation/Foundation.h>
-typedef NS_ENUM(NSInteger, LJDownLoadStatus) {
-    LJDownLoadStatusUnknown,
-    /** 下载暂停 */
-    LJDownLoadStatusPause,
-    /** 正在下载 */
-    LJDownLoadStatusDownLoading,
-    /** 已经下载 */
-    LJDownLoadStatusSuccess,
-    /** 下载失败 */
-    LJDownLoadStatusFailed
-};
-
-typedef void(^LJDownLoadInfoBlock)(long long fileSize);
-typedef void(^LJDownLoadSucessBlock)(NSString *filePath);
-typedef void(^LJDownLoadFailBlock)();
-
+#import "LJDownLoader.h"
 @interface LJDownLoadManager : NSObject
-@property (nonatomic, copy) LJDownLoadInfoBlock info;
-@property (nonatomic, copy) LJDownLoadSucessBlock success;
-@property (nonatomic, copy) LJDownLoadFailBlock fail;
-@property (nonatomic, assign, readonly) LJDownLoadStatus downLoadStatus;
+/** 创建单例*/
+/**
+ 创建单例
 
+ @return 返回LJDownLoadManager对象
+ */
++ (instancetype)shareInstance;
+
+/**
+ 从指定url下载文件
+
+ @param url url地址
+ */
 - (void)downLoadWithURL:(NSURL *)url;
 
-- (void)downLoadWithURL:(NSURL *)url downLoadInfo:(LJDownLoadInfoBlock)Info downLoadSuccess:(LJDownLoadSucessBlock)success downLoadFail:(LJDownLoadFailBlock)fail;
-// 恢复
-- (void)resume;
-// 暂停
-- (void)pause;
-// 取消
-- (void)cancel;
-// 取消并清除缓存
-- (void)cancelAndClearCache;
+/**
+ 从指定url下载文件
 
+ @param url url地址
+ @param success 成功回调
+ @param fail 失败回调
+ */
+- (void)downLoadWithURL:(NSURL *)url success:(LJDownLoadSucessBlock)success fail:(LJDownLoadFailBlock)fail;
+
+/**
+ 从指定url下载文件
+
+ @param url url地址
+ @param success 成功回调
+ @param progress 进程回调
+ @param fail 失败回调
+ */
+- (void)downLoadWithURL:(NSURL *)url success:(LJDownLoadSucessBlock)success progress:(LJDownLoadProgressBlock)progress fail:(LJDownLoadFailBlock)fail;
+
+/**
+ 暂停对应url的下载
+
+ @param url url地址
+ */
+- (void)pauseWithURL:(NSURL *)url;
+
+
+/**
+ 取消对应url的下载
+
+ @param url url地址
+ */
+- (void)cancelWithURL:(NSURL *)url;
+
+/**
+ 暂停所有下载
+ */
+- (void)pauseAll;
 @end

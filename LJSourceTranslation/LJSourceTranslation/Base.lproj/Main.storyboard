@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -21,42 +22,114 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jEH-Zj-Y9a">
-                                <rect key="frame" x="139" y="239" width="96" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jEH-Zj-Y9a">
+                                <rect key="frame" x="0.0" y="426" width="96" height="30"/>
                                 <state key="normal" title="开始"/>
                                 <connections>
                                     <action selector="star:" destination="BYZ-38-t0r" eventType="touchUpInside" id="IKg-cA-IpN"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P7M-QR-E9Z">
-                                <rect key="frame" x="145" y="311" width="84" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="P7M-QR-E9Z">
+                                <rect key="frame" x="104" y="426" width="84" height="30"/>
                                 <state key="normal" title="继续"/>
                                 <connections>
                                     <action selector="continue:" destination="BYZ-38-t0r" eventType="touchUpInside" id="PcN-5e-P7D"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OvK-CJ-lg3">
-                                <rect key="frame" x="152" y="374" width="71" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="OvK-CJ-lg3">
+                                <rect key="frame" x="203" y="426" width="71" height="30"/>
                                 <state key="normal" title="暂停"/>
                                 <connections>
                                     <action selector="pause:" destination="BYZ-38-t0r" eventType="touchUpInside" id="dw1-a7-jAg"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2XT-mS-XAi">
-                                <rect key="frame" x="141" y="426" width="93" height="30"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2XT-mS-XAi">
+                                <rect key="frame" x="282" y="426" width="93" height="30"/>
                                 <state key="normal" title="取消"/>
                                 <connections>
                                     <action selector="cancel:" destination="BYZ-38-t0r" eventType="touchUpInside" id="aOF-5B-4Bq"/>
                                 </connections>
                             </button>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gXI-9D-0g8">
+                                <rect key="frame" x="50" y="332.5" width="275" height="2"/>
+                            </progressView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="aJF-1O-ggr">
+                                <rect key="frame" x="0.0" y="233" width="92" height="30"/>
+                                <state key="normal" title="开始"/>
+                                <connections>
+                                    <action selector="startWithUrl2:" destination="BYZ-38-t0r" eventType="touchUpInside" id="wL8-yc-F9L"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ZNz-Q5-rgB">
+                                <rect key="frame" x="100" y="233" width="80" height="30"/>
+                                <state key="normal" title="继续"/>
+                                <connections>
+                                    <action selector="continueWithUrl2:" destination="BYZ-38-t0r" eventType="touchUpInside" id="asf-ct-OIo"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="VgD-vU-mAH">
+                                <rect key="frame" x="195" y="233" width="67" height="30"/>
+                                <state key="normal" title="暂停"/>
+                                <connections>
+                                    <action selector="pauseWithUrl2:" destination="BYZ-38-t0r" eventType="touchUpInside" id="uRE-iG-W1q"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="JFe-bX-g2q">
+                                <rect key="frame" x="270" y="233" width="89" height="30"/>
+                                <state key="normal" title="取消"/>
+                                <connections>
+                                    <action selector="cancelWithUrl2:" destination="BYZ-38-t0r" eventType="touchUpInside" id="6FD-T6-vhd"/>
+                                </connections>
+                            </button>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lio-7S-RAe">
+                                <rect key="frame" x="50" y="180.5" width="275" height="2"/>
+                            </progressView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <constraints>
+                            <constraint firstItem="P7M-QR-E9Z" firstAttribute="leading" secondItem="jEH-Zj-Y9a" secondAttribute="trailing" constant="8" id="0pv-Wm-bOG"/>
+                            <constraint firstItem="jEH-Zj-Y9a" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="3jk-CW-Auk"/>
+                            <constraint firstItem="gXI-9D-0g8" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="50" id="77Q-s4-v9g"/>
+                            <constraint firstItem="jEH-Zj-Y9a" firstAttribute="width" secondItem="OvK-CJ-lg3" secondAttribute="width" constant="25" id="7WS-T1-gRZ"/>
+                            <constraint firstItem="gXI-9D-0g8" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="9s1-Bq-E6G"/>
+                            <constraint firstItem="2XT-mS-XAi" firstAttribute="bottom" secondItem="jEH-Zj-Y9a" secondAttribute="bottom" id="IkH-UI-Vxf"/>
+                            <constraint firstItem="jEH-Zj-Y9a" firstAttribute="width" secondItem="2XT-mS-XAi" secondAttribute="width" constant="3" id="J3k-xN-Mvd"/>
+                            <constraint firstItem="VgD-vU-mAH" firstAttribute="bottom" secondItem="aJF-1O-ggr" secondAttribute="bottom" id="JAB-VG-FBh"/>
+                            <constraint firstItem="jEH-Zj-Y9a" firstAttribute="width" secondItem="P7M-QR-E9Z" secondAttribute="width" constant="12" id="Jpr-6w-UYN"/>
+                            <constraint firstItem="ZNz-Q5-rgB" firstAttribute="height" secondItem="aJF-1O-ggr" secondAttribute="height" id="Jvc-DW-Wl8"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="JFe-bX-g2q" secondAttribute="trailing" id="Kr8-Vh-aZa"/>
+                            <constraint firstItem="aJF-1O-ggr" firstAttribute="width" secondItem="ZNz-Q5-rgB" secondAttribute="width" constant="12" id="Mnp-7S-vuA"/>
+                            <constraint firstItem="P7M-QR-E9Z" firstAttribute="height" secondItem="jEH-Zj-Y9a" secondAttribute="height" id="MwY-QL-bz2"/>
+                            <constraint firstItem="ZNz-Q5-rgB" firstAttribute="leading" secondItem="aJF-1O-ggr" secondAttribute="trailing" constant="8" id="OT5-sU-fTm"/>
+                            <constraint firstItem="2XT-mS-XAi" firstAttribute="height" secondItem="jEH-Zj-Y9a" secondAttribute="height" id="PA6-td-yyV"/>
+                            <constraint firstItem="aJF-1O-ggr" firstAttribute="width" secondItem="VgD-vU-mAH" secondAttribute="width" constant="25" id="Psp-P3-LX5"/>
+                            <constraint firstItem="gXI-9D-0g8" firstAttribute="top" secondItem="lio-7S-RAe" secondAttribute="bottom" constant="150" id="QAE-5y-0zy"/>
+                            <constraint firstItem="OvK-CJ-lg3" firstAttribute="leading" secondItem="P7M-QR-E9Z" secondAttribute="trailing" constant="15" id="VOY-Vn-ME8"/>
+                            <constraint firstItem="lio-7S-RAe" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="50" id="Vld-8R-10q"/>
+                            <constraint firstItem="aJF-1O-ggr" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Vx1-Sa-PE3"/>
+                            <constraint firstItem="JFe-bX-g2q" firstAttribute="leading" secondItem="VgD-vU-mAH" secondAttribute="trailing" constant="8" id="XJK-vV-IxL"/>
+                            <constraint firstItem="JFe-bX-g2q" firstAttribute="height" secondItem="aJF-1O-ggr" secondAttribute="height" id="YtH-Qt-cS3"/>
+                            <constraint firstItem="P7M-QR-E9Z" firstAttribute="bottom" secondItem="jEH-Zj-Y9a" secondAttribute="bottom" id="bN2-Iy-xC1"/>
+                            <constraint firstItem="VgD-vU-mAH" firstAttribute="leading" secondItem="ZNz-Q5-rgB" secondAttribute="trailing" constant="15" id="byq-S5-3bp"/>
+                            <constraint firstItem="ZNz-Q5-rgB" firstAttribute="bottom" secondItem="aJF-1O-ggr" secondAttribute="bottom" id="cBP-q3-q0m"/>
+                            <constraint firstItem="JFe-bX-g2q" firstAttribute="bottom" secondItem="aJF-1O-ggr" secondAttribute="bottom" id="dkL-0v-S2c"/>
+                            <constraint firstItem="2XT-mS-XAi" firstAttribute="leading" secondItem="OvK-CJ-lg3" secondAttribute="trailing" constant="8" id="e5H-Zi-y7a"/>
+                            <constraint firstAttribute="trailing" secondItem="gXI-9D-0g8" secondAttribute="trailing" constant="50" id="ecj-4v-Nk4"/>
+                            <constraint firstItem="gXI-9D-0g8" firstAttribute="top" secondItem="aJF-1O-ggr" secondAttribute="bottom" constant="69.5" id="icb-ug-RFT"/>
+                            <constraint firstItem="OvK-CJ-lg3" firstAttribute="height" secondItem="jEH-Zj-Y9a" secondAttribute="height" id="jPL-Rc-0B1"/>
+                            <constraint firstAttribute="trailing" secondItem="lio-7S-RAe" secondAttribute="trailing" constant="50" id="ksN-BL-fez"/>
+                            <constraint firstItem="OvK-CJ-lg3" firstAttribute="bottom" secondItem="jEH-Zj-Y9a" secondAttribute="bottom" id="mUp-3A-wKh"/>
+                            <constraint firstAttribute="trailing" secondItem="2XT-mS-XAi" secondAttribute="trailing" id="obG-0A-eOg"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="jEH-Zj-Y9a" secondAttribute="bottom" constant="211" id="pUY-FN-6MI"/>
+                            <constraint firstItem="VgD-vU-mAH" firstAttribute="height" secondItem="aJF-1O-ggr" secondAttribute="height" id="snV-In-i9Y"/>
+                            <constraint firstItem="aJF-1O-ggr" firstAttribute="width" secondItem="JFe-bX-g2q" secondAttribute="width" constant="3" id="yGn-jt-yRZ"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="2vg-4Q-Lr6"/>
+                    <connections>
+                        <outlet property="progressView" destination="gXI-9D-0g8" id="ZwD-Lu-hbB"/>
+                        <outlet property="progressView2" destination="lio-7S-RAe" id="aQL-FH-ReX"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

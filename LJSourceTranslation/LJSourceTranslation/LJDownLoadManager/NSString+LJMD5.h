@@ -9,5 +9,11 @@
 #import <Foundation/Foundation.h>
 
 @interface NSString (LJMD5)
+
+/**
+ md5加密后的字符串
+ 
+ @return 需要加密的字符串
+ */
 - (NSString *)md5Str;
 @end

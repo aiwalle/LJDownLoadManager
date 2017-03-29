@@ -43,6 +43,7 @@
 		18F8EF141E88F08A0034E715 /* LJDownLoadManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */; };
 		18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */; };
 		18F8EF1A1E8A29670034E715 /* NSString+LJMD5.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF191E8A29670034E715 /* NSString+LJMD5.m */; };
+		18F8EF1D1E8B515A0034E715 /* LJDownLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EF1C1E8B515A0034E715 /* LJDownLoader.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -118,6 +119,8 @@
 		18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoadFileTool.m; sourceTree = "<group>"; };
 		18F8EF181E8A29670034E715 /* NSString+LJMD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+LJMD5.h"; sourceTree = "<group>"; };
 		18F8EF191E8A29670034E715 /* NSString+LJMD5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+LJMD5.m"; sourceTree = "<group>"; };
+		18F8EF1B1E8B515A0034E715 /* LJDownLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LJDownLoader.h; sourceTree = "<group>"; };
+		18F8EF1C1E8B515A0034E715 /* LJDownLoader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LJDownLoader.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -257,6 +260,8 @@
 			children = (
 				18F8EF121E88F08A0034E715 /* LJDownLoadManager.h */,
 				18F8EF131E88F08A0034E715 /* LJDownLoadManager.m */,
+				18F8EF1B1E8B515A0034E715 /* LJDownLoader.h */,
+				18F8EF1C1E8B515A0034E715 /* LJDownLoader.m */,
 				18F8EF151E8903470034E715 /* LJDownLoadFileTool.h */,
 				18F8EF161E8903470034E715 /* LJDownLoadFileTool.m */,
 				18F8EF181E8A29670034E715 /* NSString+LJMD5.h */,
@@ -357,6 +362,7 @@
 				18F8EEE21E88E28B0034E715 /* UIImage+MultiFormat.m in Sources */,
 				18F8EEE51E88E28B0034E715 /* UIImageView+WebCache.m in Sources */,
 				18F8EED11E88E28B0034E715 /* AFSecurityPolicy.m in Sources */,
+				18F8EF1D1E8B515A0034E715 /* LJDownLoader.m in Sources */,
 				18F8EED21E88E28B0034E715 /* AFURLRequestSerialization.m in Sources */,
 				18F8EED31E88E28B0034E715 /* AFURLResponseSerialization.m in Sources */,
 				18F8EEDC1E88E28B0034E715 /* SDWebImageDownloader.m in Sources */,
