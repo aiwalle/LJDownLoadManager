@@ -22,7 +22,7 @@ typedef NS_ENUM(NSInteger, LJDownLoadStatus) {
 typedef void(^LJDownLoadInfoBlock)(long long fileSize);
 typedef void(^LJDownLoadProgressBlock)(float progressFloat);
 typedef void(^LJDownLoadSucessBlock)(NSString *filePath);
-typedef void(^LJDownLoadFailBlock)();
+typedef void(^LJDownLoadFailBlock)(NSError *error);
 @interface LJDownLoader : NSObject
 @property (nonatomic, copy) LJDownLoadInfoBlock infoBlock;
 @property (nonatomic, copy) LJDownLoadProgressBlock progressBlock;

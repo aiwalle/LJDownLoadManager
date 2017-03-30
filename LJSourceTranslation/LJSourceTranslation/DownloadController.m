@@ -32,8 +32,8 @@
         NSLog(@"filePatch111111==%@", filePath);
     } progress:^(float progressFloat) {
         self.progressView.progress = progressFloat;
-    } fail:^{
-        NSLog(@"下载失败111111");
+    } fail:^(NSError *error){
+        NSLog(@"下载失败-%@", error.userInfo);
     }];
 
 }
@@ -60,8 +60,8 @@
         NSLog(@"filePatch222222==%@", filePath);
     } progress:^(float progressFloat) {
         self.progressView2.progress = progressFloat;
-    } fail:^{
-        NSLog(@"下载失败2222222");
+    } fail:^(NSError *error){
+        NSLog(@"下载失败-%@", error.userInfo);
     }];
 }
 

@@ -67,10 +67,10 @@ static LJDownLoadManager *_shareInstance;
         if (success) {
             success(filePath);
         }
-    } downLoadFail:^{
+    } downLoadFail:^(NSError *error){
         [wself.downLoadInfoDic removeObjectForKey:md5];
         if (fail) {
-            fail();
+            fail(error);
         }
     }];
 }

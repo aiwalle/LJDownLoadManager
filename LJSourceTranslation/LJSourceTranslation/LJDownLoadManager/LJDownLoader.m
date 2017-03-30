@@ -24,6 +24,7 @@
 @property (nonatomic, strong) NSURLSession *session;
 
 @property (nonatomic, strong) NSOutputStream *outputStream;
+@property (nonatomic, strong) NSURL *url;
 //@property (nonatomic, strong) NSURL *url;
 //@property (nonatomic, strong) NSOperationQueue *queue;
 @property (nonatomic, weak) NSURLSessionDataTask *dataTask;
@@ -33,9 +34,9 @@
 @implementation LJDownLoader
 - (NSURLSession *)session {
     if (!_session) {
-        NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+        NSURLSessionConfiguration *config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:[self.url.absoluteString md5Str]];
         _queue = [[NSOperationQueue alloc] init];
-        _queue.maxConcurrentOperationCount = 3;
+        _queue.maxConcurrentOperationCount = 1;
         // TODO:队列问题还没解决
         _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:_queue];
     }
@@ -75,6 +76,7 @@
 }
 
 - (void)downLoadWithURL:(NSURL *)url {
+    _url = url;
     // 最终的下载地址
     self.cacheFilePath = [LJCacheDir stringByAppendingString:url.lastPathComponent];
     // 临时文件地址
@@ -221,7 +223,7 @@
         self.downLoadStatus = LJDownLoadStatusFailed;
         NSLog(@"Error==%@", error.userInfo);
         if (self.failBlock) {
-            self.failBlock();
+            self.failBlock(error);
         }
     } else {
         NSLog(@"文件正常下载成功了");
