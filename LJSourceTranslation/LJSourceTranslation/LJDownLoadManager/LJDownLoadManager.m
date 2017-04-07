@@ -55,7 +55,9 @@ static LJDownLoadManager *_shareInstance;
         return;
     }
     downLoader = [[LJDownLoader alloc] init];
-    self.downLoadInfoDic[md5] = downLoader;
+    
+    [self.downLoadInfoDic setObject:downLoader forKey:md5];
+//    self.downLoadInfoDic[md5] = downLoader;
     __weak __typeof(self)wself = self;
     [downLoader downLoadWithURL:url downLoadInfo:nil progress:^(float progressFloat) {
         if (progress) {

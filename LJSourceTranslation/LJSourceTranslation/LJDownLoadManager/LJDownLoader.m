@@ -29,16 +29,20 @@
 //@property (nonatomic, strong) NSOperationQueue *queue;
 @property (nonatomic, weak) NSURLSessionDataTask *dataTask;
 @property (nonatomic, strong) NSOperationQueue *queue;
+@property (nonatomic, weak) NSMutableURLRequest *request;
 @end
 
 @implementation LJDownLoader
 - (NSURLSession *)session {
     if (!_session) {
-        NSURLSessionConfiguration *config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:[self.url.absoluteString md5Str]];
-        _queue = [[NSOperationQueue alloc] init];
-        _queue.maxConcurrentOperationCount = 1;
+//        NSURLSessionConfiguration *config = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:[self.url.absoluteString md5Str]];
+//        _queue = [[NSOperationQueue alloc] init];
+//        _queue.maxConcurrentOperationCount = 1;
+        
+        
+        NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
         // TODO:队列问题还没解决
-        _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:_queue];
+        _session = [NSURLSession sessionWithConfiguration:config delegate:self delegateQueue:[NSOperationQueue mainQueue]];
     }
     return _session;
 }
@@ -149,6 +153,11 @@
 
 - (void)downLoadWithURL:(NSURL *)url offset:(long long)offset {
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
+//    self.request = request;
+    // 是否允许蜂窝网络
+    request.allowsCellularAccess = YES;
+    
+//    NSLog(@"22222---%@", request.allHTTPHeaderFields);
     [request setValue:[NSString stringWithFormat:@"bytes=%lld-", offset] forHTTPHeaderField:@"Range"];
     NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request];
     [dataTask resume];
@@ -160,6 +169,8 @@
 // 如果超时 也会受到响应
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveResponse:(NSURLResponse *)response completionHandler:(void (^)(NSURLSessionResponseDisposition))completionHandler {
 //    NSLog(@"respon==%@", response);
+    
+    
     NSLog(@"tread---%@---url:%@", [NSThread currentThread], dataTask.originalRequest.URL);
     
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
