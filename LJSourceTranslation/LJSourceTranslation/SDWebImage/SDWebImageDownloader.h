@@ -99,10 +99,8 @@ typedef SDHTTPHeadersDictionary * _Nullable (^SDWebImageDownloaderHeadersFilterB
  *  一个与每个下载关联的Token，可以用来取消下载
  */
 @interface SDWebImageDownloadToken : NSObject
-
 @property (nonatomic, strong, nullable) NSURL *url;
 @property (nonatomic, strong, nullable) id downloadOperationCancelToken;
-
 @end
 
 

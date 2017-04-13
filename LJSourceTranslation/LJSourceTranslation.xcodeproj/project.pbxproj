@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1811ABD01E977C9F00098F59 /* DownManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1811ABCF1E977C9F00098F59 /* DownManager.m */; };
 		18F8EE831E88E2640034E715 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EE821E88E2640034E715 /* main.m */; };
 		18F8EE861E88E2640034E715 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EE851E88E2640034E715 /* AppDelegate.m */; };
 		18F8EE891E88E2640034E715 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 18F8EE881E88E2640034E715 /* ViewController.m */; };
@@ -47,6 +48,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1811ABCE1E977C9F00098F59 /* DownManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DownManager.h; sourceTree = "<group>"; };
+		1811ABCF1E977C9F00098F59 /* DownManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DownManager.m; sourceTree = "<group>"; };
 		18F8EE7E1E88E2640034E715 /* LJSourceTranslation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LJSourceTranslation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		18F8EE821E88E2640034E715 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		18F8EE841E88E2640034E715 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -159,6 +162,8 @@
 				18F8EE851E88E2640034E715 /* AppDelegate.m */,
 				18F8EE871E88E2640034E715 /* ViewController.h */,
 				18F8EE881E88E2640034E715 /* ViewController.m */,
+				1811ABCE1E977C9F00098F59 /* DownManager.h */,
+				1811ABCF1E977C9F00098F59 /* DownManager.m */,
 				18F8EF111E88F0690034E715 /* LJDownLoadManager */,
 				18F8EF0E1E88ECD20034E715 /* DownloadController.h */,
 				18F8EF0F1E88ECD20034E715 /* DownloadController.m */,
@@ -377,6 +382,7 @@
 				18F8EF1A1E8A29670034E715 /* NSString+LJMD5.m in Sources */,
 				18F8EEDE1E88E28B0034E715 /* SDWebImageManager.m in Sources */,
 				18F8EF171E8903470034E715 /* LJDownLoadFileTool.m in Sources */,
+				1811ABD01E977C9F00098F59 /* DownManager.m in Sources */,
 				18F8EEE71E88E28B0034E715 /* UIView+WebCacheOperation.m in Sources */,
 				18F8EED81E88E28B0034E715 /* SDImageCache.m in Sources */,
 				18F8EECF1E88E28B0034E715 /* AFHTTPSessionManager.m in Sources */,

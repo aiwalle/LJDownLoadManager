@@ -10,55 +10,59 @@
 #import "SDWebImage/UIImageView+WebCache.h"
 #import "UIView+Animation.h"
 #import "DownloadController.h"
-@interface ViewController ()
+
+#import "NSString+LJMD5.h"
+@interface ViewController ()<NSURLSessionDelegate>
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
+@property (nonatomic, copy) NSString *cacheFilePath;
 
+@property (nonatomic, copy) NSString *tempFilePath;
+@property (nonatomic, strong) NSURLSession *session;
+@property (nonatomic, weak) NSURLSessionDownloadTask *dataTask;
 @end
 
 @implementation ViewController
-- (IBAction)push:(id)sender {
-    
-    [self.navigationController pushViewController:[DownloadController new] animated:YES];
-}
+
+
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    //    [self.imageView sd_setImageWithURL:[NSURL URLWithString:@"https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png"] placeholderImage:[UIImage imageNamed:@"placeholder"]];
+    NSString *urlStr = @"http://issuecdn.baidupcs.com/issue/netdisk/MACguanjia/BaiduNetdisk_mac_2.1.0.dmg";
+    NSURL *url = [NSURL URLWithString:urlStr];
     
-    self.imageView.backgroundColor = [UIColor grayColor];
-    
-    //    __weak typeof(self) weakSelf = self;
-    //    [self.imageView sd_setImageWithURL:[NSURL URLWithString:@"https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png"] placeholderImage:[UIImage imageNamed:@"placeholder"] options:SDWebImageAvoidAutoSetImage completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-    //        [weakSelf.imageView crossDissolveAnimationForWebImageWithType:cacheType image:image];
-    //    }];
-    
-//    [self.imageView lj_setImageWithURL:[NSURL URLWithString:@"https://ss0.bdstatic.com/5aV1bjqh_Q23odCf/static/superman/img/logo/bd_logo1_31bdc765.png"] placeholderImage:[UIImage imageNamed:@"placeholder"]];
-    
-
-    
-    
+    // 最终的下载地址
+    self.cacheFilePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject stringByAppendingString:url.lastPathComponent];
+    // 临时文件地址
+    self.tempFilePath = [NSTemporaryDirectory() stringByAppendingString:[url.absoluteString md5Str]];
+//
+//    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:urlStr];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:[NSOperationQueue mainQueue]];
+    self.session = session;
+    NSURLSessionDownloadTask *task = [self.session downloadTaskWithURL:url];
+    self.dataTask = task;
+    [self.dataTask resume];
 }
 
 - (void)testCode {
-    //    [[SDWebImageManager sharedManager] setCacheKeyFilter:^(NSURL *url) {
-    //        url = [[NSURL alloc] initWithScheme:url.scheme host:url.host path:url.path];
-    //        return [url absoluteString];
-    //    }];
-    //
-    //
-    //    [self.imageView sd_setImageWithURL:[NSURL URLWithString:@"http://www.httpwatch.com/httpgallery/authentication/authenticatedimage/default.aspx?0.35786508303135633"] completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-    //
-    //    }];
-    //
-    //
-    //    [self.imageView sd_setImageWithURL:[NSURL URLWithString:@"http://www.httpwatch.com/httpgallery/authentication/authenticatedimage/default.aspx?0.35786508303135633"] placeholderImage:nil options:SDWebImageLowPriority&SDWebImageCacheMemoryOnly progress:^(NSInteger receivedSize, NSInteger expectedSize, NSURL * _Nullable targetURL) {
-    //
-    //    } completed:^(UIImage * _Nullable image, NSError * _Nullable error, SDImageCacheType cacheType, NSURL * _Nullable imageURL) {
-    //        
-    //    }];
+    NSString *urlStr = @"http://issuecdn.baidupcs.com/issue/netdisk/MACguanjia/BaiduNetdisk_mac_2.1.0.dmg";
+    NSURL *url = [NSURL URLWithString:urlStr];
     
+    // 最终的下载地址
+    self.cacheFilePath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject stringByAppendingString:url.lastPathComponent];
+    // 临时文件地址
+    self.tempFilePath = [NSTemporaryDirectory() stringByAppendingString:[url.absoluteString md5Str]];
+    //
+    //    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:urlStr];
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:[NSOperationQueue mainQueue]];
+    self.session = session;
+    NSURLSessionDownloadTask *task = [self.session downloadTaskWithURL:url];
+    self.dataTask = task;
+    [self.dataTask resume];
     
 }
 

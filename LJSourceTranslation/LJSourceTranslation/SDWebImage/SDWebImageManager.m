@@ -174,6 +174,7 @@
     
     // 这里设定了operation的缓存队列，通过上面获取到的cacheKey来查询缓存
     // queryCacheOperationForKey是通过key来获取缓存，无论是从内存，从磁盘中还是从网络
+    // 一个imageView对应一个operation对象
     operation.cacheOperation = [self.imageCache queryCacheOperationForKey:key done:^(UIImage *cachedImage, NSData *cachedData, SDImageCacheType cacheType) {
         // 如果对当前operation进行了取消操作，在SDWebImageManager的runningOperations移除operation
         if (operation.isCancelled) {
@@ -181,7 +182,7 @@
             return;
         }
         // 1.cachedImage为nil，SDWebImageManager的代理对象没有实现imageManager:shouldDownloadImageForURL:(如果无缓存，这种就是默认情况)
-        // 2.cachedImage为nil，SDWebImageManager的代理对象，YES--->代理对象返回（当图像没有在内存中找到的时候，控制是否下载图像）(无缓存，但是实现了代理方法且返回YES)
+        // 2.cachedImage为nil，SDWebImageManager的代理对象的代理方法返回YES（当图像没有在内存中找到的时候，控制是否下载图像）。(无缓存，但是实现了代理方法且返回YES)
         // 3.options为SDWebImageRefreshCached，SDWebImageManager的代理对象没有实现imageManager:shouldDownloadImageForURL:
         // 4.options为SDWebImageRefreshCached，SDWebImageManager的代理对象，YES--->代理对象返回（当图像没有在内存中找到的时候，控制是否下载图像）
         if ((!cachedImage || options & SDWebImageRefreshCached) && (![self.delegate respondsToSelector:@selector(imageManager:shouldDownloadImageForURL:)] || [self.delegate imageManager:self shouldDownloadImageForURL:url])) {
@@ -236,7 +237,7 @@
                     // if we would call the completedBlock, there could be a race condition between this block and another completedBlock for the same object, so if this one is called second, we will overwrite the new data
                     // 如果我们调用完成的block，在这个block和另一个完成的block之间可能存在竞争条件，因此如果这个被第二个调用，我们将覆盖新的数据
                 } else if (error) {
-                    // 判断operation是否取消了（检查是否取消要勤快点），没有取消，就调用completedBlock，处理error。
+                    // 如果发生了错误，就把错误传入对应的回调来处理error
                     [self callCompletionBlockForOperation:strongOperation completion:completedBlock error:error url:url];
                     // 检查错误类型，确认不是客户端或者服务器端的网络问题，就认为这个url本身问题了。并把这个url放到failedURLs中
                     if (   error.code != NSURLErrorNotConnectedToInternet
@@ -253,7 +254,7 @@
                     }
                 }
                 else {
-                    // 如果使用了SDWebImageRetryFailed选项，那么即使该url是failedURLs，也要从failedURLs移除，并继续执行download：
+                    // 如果使用了SDWebImageRetryFailed选项，那么即使该url是failedURLs，也要从failedURLs移除，并继续执行download
                     if ((options & SDWebImageRetryFailed)) {
                         @synchronized (self.failedURLs) {
                             [self.failedURLs removeObject:url];
@@ -261,7 +262,8 @@
                     }
                     // 如果不设定SDWebImageCacheMemoryOnly，那么cacheOnDisk为YES
                     BOOL cacheOnDisk = !(options & SDWebImageCacheMemoryOnly);
-
+                    
+                    // 如果options包含SDWebImageRefreshCached，cachedImage有值，但是下载图像downloadedImage为nil，不调用完成的回调completion block
                     if (options & SDWebImageRefreshCached && cachedImage && !downloadedImage) {
                         // Image refresh hit the NSURLCache cache, do not call the completion block
                         // 图像刷新命中NSURLCache缓存，不调用回调
@@ -353,7 +355,7 @@
     return isRunning;
 }
 
-// 执行完后，说明图片获取成功，可以把当前这个operation溢移除了。
+// 执行完后，说明图片获取成功，可以把当前这个operation移除了。
 - (void)safelyRemoveOperationFromRunning:(nullable SDWebImageCombinedOperation*)operation {
     @synchronized (self.runningOperations) {
         if (operation) {

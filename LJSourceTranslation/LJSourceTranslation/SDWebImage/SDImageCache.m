@@ -407,7 +407,7 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
 
 - (nullable NSOperation *)queryCacheOperationForKey:(nullable NSString *)key done:(nullable SDCacheQueryCompletedBlock)doneBlock {
     // 如果对应的key为nil，直接执行回调函数
-    // 如果key为nil，说明cache中没有该image。所以doneBlock中传入SDImageCacheTypeNone，表示cache中没有图片，要从网络重新获取。
+    // 如果key为nil，说明url不对，因此不执行后面的操作了，直接返回Operaion为nil。
     if (!key) {
         if (doneBlock) {
             doneBlock(nil, nil, SDImageCacheTypeNone);
@@ -431,8 +431,8 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
     }
     
     // 内存中没有对应的缓存，执行下面的代码
-    // LJMARK:这里的operation有点莫名其妙，干啥用的
     NSOperation *operation = [NSOperation new];
+    // 新开一个串行队列，在里面执行下面的代码
     dispatch_async(self.ioQueue, ^{
         NSLog(@"nstread---%@", [NSThread currentThread]);
         if (operation.isCancelled) {
@@ -444,7 +444,9 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
             // 搜索磁盘缓存，将磁盘缓存加入内存缓存
             NSData *diskData = [self diskImageDataBySearchingAllPathsForKey:key];
             UIImage *diskImage = [self diskImageForKey:key];
+            // 如果可以获取到磁盘图像，且缓存图像到内存缓存为yes(默认为yes)
             if (diskImage && self.config.shouldCacheImagesInMemory) {
+                // 计算出需要花费的内存代销，将该图像缓存到内存中
                 NSUInteger cost = SDCacheCostForImage(diskImage);
                 [self.memCache setObject:diskImage forKey:key cost:cost];
             }
