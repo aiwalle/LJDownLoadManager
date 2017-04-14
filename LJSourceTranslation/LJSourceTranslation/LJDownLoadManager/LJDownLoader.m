@@ -12,7 +12,7 @@
 #define LJCacheDir NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES).firstObject
 #define LJTempDir NSTemporaryDirectory()
 
-@interface LJDownLoader()<NSURLSessionDelegate, NSURLSessionDataDelegate>
+@interface LJDownLoader()<NSURLSessionTaskDelegate, NSURLSessionDataDelegate>
 {
     long long _tempFileSize;
     long long _totalFileSize;

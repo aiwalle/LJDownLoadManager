@@ -107,6 +107,7 @@
     self.session = nil;
 
     [self.downloadQueue cancelAllOperations];
+    // mrc下的release
     SDDispatchQueueRelease(_barrierQueue);
 }
 
@@ -307,12 +308,12 @@ didReceiveResponse:(NSURLResponse *)response
 
     // Identify the operation that runs this task and pass it the delegate method
     SDWebImageDownloaderOperation *dataOperation = [self operationWithTask:dataTask];
-
+    // 下面的方法都是SDWebImageDownloaderOperation实现的代理方法不是SDWebImageDownloader
     [dataOperation URLSession:session dataTask:dataTask didReceiveResponse:response completionHandler:completionHandler];
 }
 
 - (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)dataTask didReceiveData:(NSData *)data {
-
+    // 识别运行此任务并传递委托方法的操作
     // Identify the operation that runs this task and pass it the delegate method
     SDWebImageDownloaderOperation *dataOperation = [self operationWithTask:dataTask];
 

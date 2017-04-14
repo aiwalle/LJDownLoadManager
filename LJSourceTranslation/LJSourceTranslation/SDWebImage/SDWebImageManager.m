@@ -157,7 +157,7 @@
     }
     
     // 1.如果url的长度为0时候执行
-    // 2.当前url在失败的URL列表中，且options 不为 SDWebImageRetryFailed   时候执行
+    // 2.当前url在失败的URL列表中，且options不为SDWebImageRetryFailed时候执行
     if (url.absoluteString.length == 0 || (!(options & SDWebImageRetryFailed) && isFailedUrl)) {
         // 这里做的就是抛出错误,文件不存在
         [self callCompletionBlockForOperation:operation completion:completedBlock error:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorFileDoesNotExist userInfo:nil] url:url];
@@ -272,11 +272,19 @@
                         // 并使用downloadImage，不过可惜downloadImage没有从网络端获取到图片。
                     } else if (downloadedImage && (!downloadedImage.images || (options & SDWebImageTransformAnimatedImage)) && [self.delegate respondsToSelector:@selector(imageManager:transformDownloadedImage:withURL:)]) {
                         // 图片下载成功，获取到了downloadedImage。
-                        // 这时候如果想transform已经下载的图片，就得先判断这个图片是不是animated image（动图），
+                        // 这时候如果想改变已经下载的图片，就得先判断这个图片是不是animated image（动图），
                         // 这里可以通过downloadedImage.images是不是为空判断。
                         // 默认情况下，动图是不允许transform的，不过如果options选项中有SDWebImageTransformAnimatedImage，也是允许transform的。
                         // 当然，静态图片不受此干扰。另外，要transform图片，还需要实现
                         // transformDownloadedImage这个方法，这个方法是在SDWebImageManagerDelegate代理定义的
+                        
+                        
+                        /*
+                         1.图片下载成功了，不是gif图像，且代理实现了imageManager:transformDownloadedImage:withURL:
+                         2.图片下载成功了，options中包含SDWebImageTransformAnimatedImage，且代理实现了imageManager:transformDownloadedImage:withURL:
+                         这里做的主要操作是在一个新开的异步队列中对图片做一个转换的操作，例如需要改变原始图片的灰度值等情况
+                         */
+                        
                         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
                             // 如果获得了新的transformedImage,不管transform后是否改变了图片.都要存储到缓存中。区别在于如果transform后的图片和之前不一样，就需要重新生成imageData，而不能在使用之前最初的那个imageData了。
                             UIImage *transformedImage = [self.delegate imageManager:self transformDownloadedImage:downloadedImage withURL:url];

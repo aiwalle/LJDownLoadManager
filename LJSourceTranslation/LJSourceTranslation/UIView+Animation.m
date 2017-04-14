@@ -12,7 +12,7 @@
 
 - (void)crossDissolveAnimationForWebImage {
     [UIView transitionWithView:self
-                      duration:5.3
+                      duration:0.3
                        options:UIViewAnimationOptionTransitionCrossDissolve
                     animations:^{
                         self.alpha = 1.0f;
